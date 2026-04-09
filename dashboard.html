@@ -34,9 +34,8 @@
 
   .tip{position:relative;display:inline-flex;align-items:center;gap:6px;cursor:help}
   .tip-icon{width:16px;height:16px;background:var(--accent);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
-  .tip-box{display:none;position:absolute;left:0;top:calc(100% + 8px);background:#2a2d3e;border:1px solid var(--border);border-radius:10px;padding:14px 16px;width:320px;z-index:100;font-size:12px;line-height:1.7;color:var(--text)}
+  .tip-box{display:none;position:fixed;background:#2a2d3e;border:1px solid var(--border);border-radius:10px;padding:14px 16px;width:320px;z-index:9999;font-size:12px;line-height:1.7;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,.5)}
   .tip-box::before{content:'';position:absolute;bottom:100%;left:20px;border:6px solid transparent;border-bottom-color:#2a2d3e}
-  .tip:hover .tip-box{display:block}
   .tip-box b{color:var(--accent)}
 
   .row{display:grid;gap:20px;margin-bottom:24px}
@@ -380,6 +379,25 @@ const TK_REG  = PO.map((p,i)=>p>0?VO[i]/p:null); // Ticket tours regulares (sin 
 const TK_BOL  = PB.map((p,i)=>p>0?VB[i]/p:null); // Ticket Boletos-Frida
 const TK = PO.map((p,i)=>p>0?VO[i]/p:null); // Usado en tabla (tours regulares)
 const MG = UN.map((u,i)=>V[i]>0?(u/V[i]*100):0);
+
+// ── TOOLTIP POSITIONING (fixed, avoids overflow clipping) ──
+document.querySelectorAll('.tip').forEach(tip => {
+  const box = tip.querySelector('.tip-box');
+  if(!box) return;
+  tip.addEventListener('mouseenter', () => {
+    const r = tip.getBoundingClientRect();
+    box.style.display = 'block';
+    let top = r.bottom + 8;
+    let left = r.left;
+    // Keep within viewport
+    if(left + 320 > window.innerWidth - 12) left = window.innerWidth - 332;
+    if(left < 12) left = 12;
+    if(top + box.offsetHeight > window.innerHeight - 12) top = r.top - box.offsetHeight - 8;
+    box.style.top  = top  + 'px';
+    box.style.left = left + 'px';
+  });
+  tip.addEventListener('mouseleave', () => { box.style.display = 'none'; });
+});
 
 Chart.defaults.color='#9196b0';
 Chart.defaults.font.family="'Segoe UI',system-ui,sans-serif";
