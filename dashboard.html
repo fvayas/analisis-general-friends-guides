@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Friends Tours CDMX — Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{--bg:#0f1117;--card:#1a1d27;--card2:#20232f;--border:#2a2d3e;--accent:#6c63ff;--green:#00d4aa;--red:#ff6b6b;--yellow:#ffd93d;--blue:#4d9fff;--orange:#ff8c42;--pink:#e84393;--teal:#00b4d8;--text:#e4e6f0;--text2:#9196b0;--purple:#a29bfe}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif}
+  .header{background:linear-gradient(135deg,#1a1d27,#12141f);border-bottom:1px solid var(--border);padding:24px 32px;display:flex;align-items:center;justify-content:space-between}
+  .header h1{font-size:22px;font-weight:700;letter-spacing:-.3px}
+  .header h1 span{color:var(--accent)}
+  .header .sub{color:var(--text2);font-size:13px;margin-top:4px}
+  .badge{background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+  .main{padding:28px 32px;max-width:1600px;margin:0 auto}
+  .sec-title{font-size:13px;font-weight:600;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 24px;position:relative;overflow:hidden}
+  .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0}
+  .kpi.c1::before{background:linear-gradient(90deg,var(--accent),var(--blue))}
+  .kpi.c2::before{background:linear-gradient(90deg,var(--green),var(--teal))}
+  .kpi.c3::before{background:linear-gradient(90deg,var(--yellow),var(--orange))}
+  .kpi.c4::before{background:linear-gradient(90deg,var(--purple),var(--accent))}
+  .kpi-label{font-size:11px;color:var(--text2);font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px}
+  .kpi-val{font-size:28px;font-weight:800;letter-spacing:-1px}
+  .kpi-sub{font-size:12px;color:var(--text2);margin-top:8px}
+  .kpi-tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;margin-top:8px}
+  .kpi-tag.up{background:rgba(0,212,170,.15);color:var(--green)}
+
+  .tip{position:relative;display:inline-flex;align-items:center;gap:6px;cursor:help}
+  .tip-icon{width:16px;height:16px;background:var(--accent);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+  .tip-box{display:none;position:absolute;left:0;top:calc(100% + 8px);background:#2a2d3e;border:1px solid var(--border);border-radius:10px;padding:14px 16px;width:320px;z-index:100;font-size:12px;line-height:1.7;color:var(--text)}
+  .tip-box::before{content:'';position:absolute;bottom:100%;left:20px;border:6px solid transparent;border-bottom-color:#2a2d3e}
+  .tip:hover .tip-box{display:block}
+  .tip-box b{color:var(--accent)}
+
+  .row{display:grid;gap:20px;margin-bottom:24px}
+  .row.c2{grid-template-columns:1fr 1fr}
+  .row.c3{grid-template-columns:2fr 1fr}
+  .crd{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px}
+  .crd-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px}
+  .crd-title{font-size:15px;font-weight:700}
+  .crd-desc{font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px}
+  .legend-i{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+  .legend-d{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+
+  .tbl-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:var(--card2);color:var(--text2);font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;padding:10px 14px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+  th:first-child{text-align:left}
+  td{padding:11px 14px;text-align:right;border-bottom:1px solid rgba(42,45,62,.6);white-space:nowrap}
+  td:first-child{text-align:left;font-weight:600}
+  tr:hover td{background:rgba(108,99,255,.04)}
+  .pos{color:var(--green);font-weight:700}.neg{color:var(--red);font-weight:700}
+  .tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px}
+  .tag.up{background:rgba(0,212,170,.15);color:var(--green)}
+  .tag.dn{background:rgba(255,107,107,.15);color:var(--red)}
+  .tag.mid{background:rgba(255,217,61,.12);color:var(--yellow)}
+
+  .src{font-size:11px;color:var(--text2);text-align:center;padding:24px;border-top:1px solid var(--border);margin-top:32px}
+  .tour-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+  .tour-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative}
+  .tour-card-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+  .tour-card-name{font-size:13px;font-weight:700}
+  .tour-card-pax{font-size:11px;color:var(--text2);margin-bottom:10px}
+  .tour-stat-row{display:flex;gap:12px;margin-bottom:12px}
+  .tour-stat{flex:1;text-align:center}
+  .tour-stat-val{font-size:16px;font-weight:800}
+  .tour-stat-lbl{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  .tour-trend{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px}
+  .tour-trend.up{background:rgba(255,107,107,.15);color:var(--red)}
+  .tour-trend.dn{background:rgba(0,212,170,.15);color:var(--green)}
+  .tour-trend.ok{background:rgba(255,217,61,.12);color:var(--yellow)}
+  @media(max-width:1200px){.tour-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:700px){.tour-grid{grid-template-columns:1fr}}
+  .modal-cat{margin-bottom:18px}
+  .modal-cat-hd{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+  .modal-cat-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+  .modal-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;border-bottom:1px solid rgba(42,45,62,.4)}
+  .modal-item:last-child{border-bottom:none}
+  .modal-item-name{color:var(--text);flex:1}
+  .modal-item-usd{color:var(--text2);font-size:11px;margin-right:12px}
+  .modal-item-mxn{color:var(--green);font-weight:600;white-space:nowrap}
+  .modal-cat-total{font-size:12px;color:var(--text2);margin-top:6px;text-align:right}
+  .click-hint{font-size:11px;color:var(--text2);text-align:center;margin-top:8px;opacity:.7}
+
+  @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.row.c2,.row.c3{grid-template-columns:1fr}}
+
+  /* Tour breakdown modal */
+  .tb-modal-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(42,45,62,.5);font-size:13px}
+  .tb-modal-row:last-child{border-bottom:none}
+  .tb-modal-name{color:var(--text2);flex:1;text-transform:capitalize}
+  .tb-modal-bar-wrap{flex:2;margin:0 14px;height:6px;background:rgba(42,45,62,.8);border-radius:3px;overflow:hidden}
+  .tb-modal-bar{height:100%;border-radius:3px;transition:width .4s}
+  .tb-modal-val{font-weight:700;color:var(--text);white-space:nowrap;min-width:50px;text-align:right}
+  .tb-modal-total{display:flex;justify-content:space-between;padding:12px 0 0;margin-top:4px;border-top:2px solid var(--border);font-weight:700;font-size:14px}
+  .tour-click-hint{font-size:10px;color:var(--text2);text-align:center;margin-top:6px;opacity:.65}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Friends Tours <span>CDMX</span> — Dashboard</h1>
+    <div class="sub">Enero 2025 – Enero 2026 &nbsp;·&nbsp; 13 meses &nbsp;·&nbsp; Datos extraídos de hojas mensuales</div>
+  </div>
+  <div class="badge">ABR 2026</div>
+</div>
+
+<div class="main">
+
+  <!-- KPI CARDS -->
+  <div class="sec-title">Indicadores Globales (13 meses)</div>
+  <div class="kpi-grid">
+    <div class="kpi c1">
+      <div class="kpi-label">Ventas Totales</div>
+      <div class="kpi-val" style="color:var(--accent)">$13.6M</div>
+      <div class="kpi-sub">$13,578,145 MXN — suma de tours + venta adicional</div>
+    </div>
+    <div class="kpi c2">
+      <div class="kpi-label">Clientes Atendidos</div>
+      <div class="kpi-val" style="color:var(--green)">10,593</div>
+      <div class="kpi-sub">PAX totales en 13 meses de operación</div>
+    </div>
+    <div class="kpi c3">
+      <div class="tip">
+        <div class="kpi-label">Utilidad Neta Acumulada</div>
+        <div class="tip-icon">?</div>
+        <div class="tip-box">
+          <b>¿Qué es la Utilidad Neta?</b><br><br>
+          Es lo que <b>realmente quedó en la empresa</b> después de:<br>
+          ✅ Restar todos los costos de cada tour (trajinera, mariachi, gasolina, boletos, camioneta, operador, guía...)<br>
+          ✅ Restar gastos administrativos (Bokun, Google, Viator, Stripe, impuestos, sueldos, etc.)<br><br>
+          <b>Fórmula:</b><br>
+          Utilidad de Tours − Gastos Admin = <b>Utilidad Neta</b><br><br>
+          Los gastos en dólares ya están convertidos a pesos dentro de cada hoja mensual.
+        </div>
+      </div>
+      <div class="kpi-val" style="color:var(--yellow)">$6.5M</div>
+      <div class="kpi-sub">$6,533,658 MXN utilidad neta total</div>
+    </div>
+    <div class="kpi c4">
+      <div class="kpi-label">Mejor Mes (Util. Neta)</div>
+      <div class="kpi-val" style="color:var(--purple)">Dic-25</div>
+      <div class="kpi-sub">$749,150 MXN utilidad neta</div>
+    </div>
+  </div>
+
+  <!-- ═══ CHART PRINCIPAL: UTILIDAD DEL MES ═══ -->
+  <div class="sec-title">
+    Utilidad del Mes
+    <div class="tip" style="margin-left:-4px">
+      <div class="tip-icon">?</div>
+      <div class="tip-box">
+        <b>¿Cómo leer esta gráfica?</b><br><br>
+        Cada mes muestra 3 valores:<br><br>
+        <b style="color:var(--accent)">■ Utilidad de Tours:</b> La ganancia generada por TODOS los tours del mes (Xochimilco, Pirámides, Garibaldi, Boletos, etc.) después de restar sus costos operativos (trajinera, mariachi, boletos, gasolina, camioneta, operador, guía). <b>No incluye gastos de oficina/plataformas.</b><br><br>
+        <b style="color:var(--red)">■ Gastos Admin:</b> Costos fijos de la empresa: Bokun, Google Ads, Viator, Stripe, Klook, impuestos, sueldos, devoluciones, etc. Ya convertidos a MXN.<br><br>
+        <b style="color:var(--green)">● Utilidad Neta:</b> Lo que <b>realmente quedó</b>.<br>= Utilidad de Tours − Gastos Admin.<br><em>Esta es la línea más importante del negocio.</em>
+      </div>
+    </div>
+  </div>
+  <div class="crd" style="margin-bottom:24px">
+    <div class="crd-hd">
+      <div>
+        <div class="crd-title">Utilidad del Mes — Desglose mensual en MXN</div>
+        <div class="crd-desc">Datos extraídos directamente de la fila "UTILIDAD / GASTOS" al final de cada hoja mensual</div>
+      </div>
+    </div>
+    <div style="height:360px"><canvas id="utilChart"></canvas></div>
+    <div class="legend">
+      <div class="legend-i"><div class="legend-d" style="background:var(--accent)"></div>Utilidad de Tours (antes de gastos admin)</div>
+      <div class="legend-i"><div class="legend-d" style="background:var(--red)"></div>Gastos Admin (plataformas, impuestos, etc.)</div>
+      <div class="legend-i"><div class="legend-d" style="background:var(--green)"></div>Utilidad Neta del Mes (lo que queda)</div>
+    </div>
+  </div>
+
+  <!-- ═══ ROW: VENTAS + TICKET ═══ -->
+  <div class="row c2">
+    <div class="crd">
+      <div class="crd-hd"><div>
+        <div class="crd-title">Ventas Totales por Mes</div>
+        <div class="crd-desc">Suma de ventas de todas las experiencias + venta adicional de cada hoja mensual · MXN</div>
+      </div></div>
+      <div style="height:260px"><canvas id="ventasChart"></canvas></div>
+    </div>
+    <div class="crd">
+      <div class="crd-hd"><div>
+        <div class="crd-title">Ticket Promedio por PAX</div>
+        <div class="crd-desc">Tours regulares vs Entradas Frida · MXN/persona · sin Venta Adicional</div>
+      </div></div>
+      <div style="height:260px"><canvas id="ticketChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ═══ ROW: PAX + GASTOS ═══ -->
+  <div class="row c2">
+    <div class="crd">
+      <div class="crd-hd"><div>
+        <div class="crd-title">PAX Totales por Mes</div>
+        <div class="crd-desc">Clientes atendidos cada mes — suma de todos los tours</div>
+      </div></div>
+      <div style="height:260px"><canvas id="paxChart"></canvas></div>
+    </div>
+    <div class="crd">
+      <div class="crd-hd"><div>
+        <div class="tip">
+          <div class="crd-title">Gastos Admin por Mes — Desglose</div>
+          <div class="tip-icon">?</div>
+          <div class="tip-box">
+            <b>¿Qué incluyen los Gastos Admin?</b><br><br>
+            • <b style="color:#6c63ff">Plataformas:</b> Bokun, Viator, Klook, Civitatis, Headout, GYG, Stripe, Airbnb, etc.<br>
+            • <b style="color:#4d9fff">Marketing:</b> Google Ads, LinkedIn, Meta/Facebook, Instagram<br>
+            • <b style="color:#ff6b6b">Impuestos:</b> SAT, contadora, fiscal<br>
+            • <b style="color:#ffd93d">Viajes/Eventos:</b> FITUR, ARIVAL, vuelos, hoteles, transporte España<br>
+            • <b style="color:#00d4aa">Operativos:</b> Walkway, WhatsApp, herramientas, suscripciones, agencia, etc.<br><br>
+            Gastos en USD convertidos a MXN con la tasa de cada hoja.
+          </div>
+        </div>
+      </div></div>
+      <div style="height:280px"><canvas id="gastosChart"></canvas></div>
+      <div class="click-hint">👆 Haz clic en cualquier barra para ver el desglose por ítem</div>
+    </div>
+  </div>
+
+  <!-- ═══ MARGEN ═══ -->
+  <div class="crd" style="margin-bottom:24px">
+    <div class="crd-hd"><div>
+      <div class="tip">
+        <div class="crd-title">Margen Neto Mensual (%)</div>
+        <div class="tip-icon">?</div>
+        <div class="tip-box">
+          <b>¿Qué es el Margen Neto?</b><br><br>
+          = (Utilidad Neta ÷ Ventas) × 100<br><br>
+          Indica qué porcentaje de cada peso vendido se convierte en ganancia real.<br>
+          <b>40%+:</b> Excelente · <b>20-40%:</b> Saludable · <b>&lt;20%:</b> Revisar costos
+        </div>
+      </div>
+      <div class="crd-desc">Utilidad Neta ÷ Ventas Totales × 100 · Qué % de cada venta queda como ganancia</div>
+    </div></div>
+    <div style="height:240px"><canvas id="margenChart"></canvas></div>
+  </div>
+
+  <!-- ═══ PAX POR TOUR POR MES ═══ -->
+  <div class="sec-title" style="margin-top:8px">PAX por Tour por Mes</div>
+  <div class="crd" style="margin-bottom:24px">
+    <div class="crd-hd">
+      <div>
+        <div class="crd-title">Clientes por Experiencia — Evolución mensual</div>
+        <div class="crd-desc">Distribución de PAX entre todas las experiencias mes a mes</div>
+      </div>
+    </div>
+    <div style="height:320px"><canvas id="paxTourChart"></canvas></div>
+    <div class="legend" id="paxTourLegend" style="margin-top:14px"></div>
+  </div>
+
+  <!-- Tabla PAX por tour -->
+  <div class="crd" style="margin-bottom:24px">
+    <div class="crd-hd"><div>
+      <div class="crd-title">PAX por Experiencia — Tabla Detalle</div>
+      <div class="crd-desc">Número de clientes por tour cada mes</div>
+    </div></div>
+    <div class="tbl-wrap">
+      <table id="paxTourTable">
+        <thead><tr id="paxTourHead"></tr></thead>
+        <tbody id="paxTourBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL GASTOS DETALLE ═══ -->
+  <div id="gastosModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;padding:20px">
+    <div style="background:#1a1d27;border:1px solid #2a2d3e;border-radius:16px;max-width:680px;width:100%;max-height:85vh;overflow-y:auto;padding:28px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <div id="modalTitle" style="font-size:18px;font-weight:700"></div>
+          <div id="modalTotal" style="font-size:13px;color:#9196b0;margin-top:4px"></div>
+        </div>
+        <button onclick="document.getElementById('gastosModal').style.display='none'" style="background:#2a2d3e;border:none;color:#e4e6f0;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center">×</button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL DESGLOSE TOUR ═══ -->
+  <div id="tourBreakModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1001;align-items:center;justify-content:center;padding:20px">
+    <div style="background:#1a1d27;border:1px solid #2a2d3e;border-radius:16px;max-width:520px;width:100%;max-height:85vh;overflow-y:auto;padding:28px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div>
+          <div id="tbModalTitle" style="font-size:17px;font-weight:700"></div>
+          <div id="tbModalSub" style="font-size:12px;color:#9196b0;margin-top:3px"></div>
+        </div>
+        <button onclick="document.getElementById('tourBreakModal').style.display='none'" style="background:#2a2d3e;border:none;color:#e4e6f0;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center">×</button>
+      </div>
+      <div id="tbModalBody" style="margin-top:18px"></div>
+    </div>
+  </div>
+
+  <!-- ═══ COSTOS POR EXPERIENCIA ═══ -->
+  <div class="sec-title" style="margin-top:8px">
+    Costo por PAX — Evolución mensual por Experiencia
+    <div class="tip" style="margin-left:-4px">
+      <div class="tip-icon">?</div>
+      <div class="tip-box">
+        <b>¿Qué muestra cada widget?</b><br><br>
+        El <b>costo por persona</b> de operar cada experiencia mes a mes.<br><br>
+        Incluye todos los costos operativos del tour: trajinera, mariachi, gasolina, boletos, camioneta, operador, guía, etc.<br><br>
+        La <b>flecha</b> indica si el costo del último mes subió ↑ o bajó ↓ respecto al mes anterior.
+      </div>
+    </div>
+  </div>
+  <div class="tour-grid" id="tourGrid"></div>
+
+  <!-- ═══ TABLA DETALLE ═══ -->
+  <div class="sec-title">Tabla Detalle Mensual</div>
+  <div class="crd">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Mes</th><th>PAX</th><th>Ventas MXN</th><th>$/PAX</th>
+          <th>
+            <div class="tip" style="justify-content:flex-end">
+              Util. Tours
+              <div class="tip-icon">?</div>
+              <div class="tip-box" style="right:0;left:auto">
+                <b>Utilidad de Tours</b><br><br>
+                Suma de la utilidad de cada experiencia del mes (Xochimilco, Pirámides, Garibaldi, etc.) después de restar costos de operación de cada tour. Antes de descontar gastos admin.
+              </div>
+            </div>
+          </th>
+          <th>Gastos Admin</th>
+          <th>
+            <div class="tip" style="justify-content:flex-end">
+              Util. Neta
+              <div class="tip-icon">?</div>
+              <div class="tip-box" style="right:0;left:auto">
+                <b>Utilidad Neta del Mes</b><br><br>
+                = Utilidad de Tours − Gastos Admin<br><br>
+                Es la cifra real que quedó en la empresa ese mes.
+              </div>
+            </div>
+          </th>
+          <th>Margen</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="src">
+    Fuente: Hojas mensuales ENERO 2025 a ENERO 2026 · Fila "UTILIDAD / GASTOS" de cada hoja · Gastos USD → MXN ya convertidos en el sheet
+  </div>
+</div>
+
+<script>
+const M = ['Ene-25','Feb-25','Mar-25','Abr-25','May-25','Jun-25','Jul-25','Ago-25','Sep-25','Oct-25','Nov-25','Dic-25','Ene-26'];
+const V = [337909,546356,846441,955790,747905,582124,1118268,1108438,854591,1294214,1994355,1858070,1333684];
+const P = [232,372,597,704,570,440,859,1002,773,1039,1461,1412,1132];
+const UT = [201629,348667,526603,619947,468748,364399,731211,663415,525415,521106,868345,825280,503301];
+const GA = [4644,11346,6694,5749,24462,39408,23918,20112,38198,113312,146106,86466,89794];
+const UN = [196986,337322,519909,614197,444287,324991,707293,643302,487217,373258,722239,749150,413507];
+// Gastos desglosados por categoría (estimado proporcional, total = GA)
+const G_PLAT = [4518,9899,2143,4313,24026,20415,16550,17116,30800,21890,48471,32287,24370]; // Plataformas
+const G_MARK = [126,111,75,348,436,726,875,894,2106,1568,1991,2758,14847];                 // Marketing
+const G_IMPU = [0,0,0,0,0,0,0,0,0,28276,49187,24487,12823];                                // Impuestos
+const G_VIAJ = [0,0,0,0,0,1246,0,0,517,44955,37168,15563,0];                               // Viajes/Eventos
+const G_OPER = [0,1336,4476,1088,0,1682,6494,2102,4776,5753,9289,11370,32084];             // Operativos
+const G_OTRO = [0,0,0,0,0,15339,0,0,0,10870,0,0,5670];                                     // Otros
+const PB = [0,0,3,35,63,28,161,252,221,187,198,345,317];   // PAX Boletos-Frida
+const PO = [232,372,594,669,507,412,698,750,552,852,1263,1067,815]; // PAX Otros tours
+const VB = [0,0,0,7399,33370,13659,86195,143391,118713,32226,54839,64695,107351]; // Venta Boletos-Frida
+const VO = [323810,520483,811584,825155,626298,485025,817731,785420,477970,735614,1184677,817917,661585]; // Venta tours regulares
+const TK_REG  = PO.map((p,i)=>p>0?VO[i]/p:null); // Ticket tours regulares (sin Boletos)
+const TK_BOL  = PB.map((p,i)=>p>0?VB[i]/p:null); // Ticket Boletos-Frida
+const TK = PO.map((p,i)=>p>0?VO[i]/p:null); // Usado en tabla (tours regulares)
+const MG = UN.map((u,i)=>V[i]>0?(u/V[i]*100):0);
+
+Chart.defaults.color='#9196b0';
+Chart.defaults.font.family="'Segoe UI',system-ui,sans-serif";
+const GC='rgba(42,45,62,0.8)';
+const fmtK=v=>'$'+(v/1000).toFixed(0)+'K';
+const fmtN=v=>'$'+Math.round(v).toLocaleString('es-MX');
+const ttCfg={backgroundColor:'#1a1d27',borderColor:'#2a2d3e',borderWidth:1,padding:12};
+
+// ── UTILIDAD DEL MES ──
+new Chart(document.getElementById('utilChart'),{
+  type:'bar',
+  data:{labels:M,datasets:[
+    {label:'Utilidad Tours',data:UT,backgroundColor:'rgba(108,99,255,0.5)',borderColor:'#6c63ff',borderWidth:2,borderRadius:6,order:2},
+    {label:'Gastos Admin',data:GA,backgroundColor:'rgba(255,107,107,0.5)',borderColor:'#ff6b6b',borderWidth:2,borderRadius:6,order:2},
+    {label:'Utilidad Neta',data:UN,type:'line',borderColor:'#00d4aa',backgroundColor:'rgba(0,212,170,0.08)',borderWidth:3,pointBackgroundColor:'#00d4aa',pointRadius:5,pointHoverRadius:8,tension:.4,fill:true,order:1}
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{...ttCfg,callbacks:{label:c=>` ${c.dataset.label}: ${fmtN(c.raw)} MXN`}}},
+    scales:{x:{grid:{color:GC}},y:{grid:{color:GC},ticks:{callback:fmtK}}}
+  }
+});
+
+// ── VENTAS ──
+new Chart(document.getElementById('ventasChart'),{
+  type:'bar',
+  data:{labels:M,datasets:[{data:V,backgroundColor:V.map(v=>v>=1200000?'rgba(0,212,170,0.6)':v>=800000?'rgba(255,217,61,0.5)':'rgba(108,99,255,0.5)'),borderColor:V.map(v=>v>=1200000?'#00d4aa':v>=800000?'#ffd93d':'#6c63ff'),borderWidth:2,borderRadius:6}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttCfg,callbacks:{label:c=>` ${fmtN(c.raw)} MXN`}}},scales:{x:{grid:{color:GC}},y:{grid:{color:GC},ticks:{callback:fmtK}}}}
+});
+
+// ── TICKET ──
+new Chart(document.getElementById('ticketChart'),{
+  type:'line',
+  data:{labels:M,datasets:[
+    {
+      label:'Tours regulares',
+      data:TK_REG,
+      borderColor:'#ffd93d',backgroundColor:'rgba(255,217,61,0.08)',
+      borderWidth:3,pointBackgroundColor:'#ffd93d',pointRadius:5,tension:.4,fill:false,
+      spanGaps:true
+    },
+    {
+      label:'Entradas Frida',
+      data:TK_BOL,
+      borderColor:'#e84393',backgroundColor:'rgba(232,67,147,0.08)',
+      borderWidth:2,pointBackgroundColor:'#e84393',pointRadius:5,tension:.4,fill:false,
+      borderDash:[5,4],spanGaps:false
+    }
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{display:true,position:'bottom',labels:{color:'#9196b0',font:{size:12},boxWidth:12,padding:16}},
+      tooltip:{...ttCfg,callbacks:{label:c=>c.raw!=null?` ${c.dataset.label}: ${fmtN(c.raw)} MXN/persona`:''}}
+    },
+    scales:{
+      x:{grid:{color:GC}},
+      y:{grid:{color:GC},ticks:{callback:v=>'$'+Math.round(v).toLocaleString('es-MX')}}
+    }
+  }
+});
+
+// ── PAX (apilado: Otros + Boletos-Frida) ──
+new Chart(document.getElementById('paxChart'),{
+  type:'bar',
+  data:{labels:M,datasets:[
+    {label:'Tours regulares',data:PO,backgroundColor:'rgba(0,180,216,0.55)',borderColor:'#00b4d8',borderWidth:2,borderRadius:{topLeft:0,topRight:0,bottomLeft:6,bottomRight:6},stack:'pax'},
+    {label:'Boletos-Frida',data:PB,backgroundColor:'rgba(232,67,147,0.6)',borderColor:'#e84393',borderWidth:2,borderRadius:{topLeft:6,topRight:6,bottomLeft:0,bottomRight:0},stack:'pax'}
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:true,position:'bottom',labels:{color:'#9196b0',font:{size:12},boxWidth:12,padding:16}},
+      tooltip:{...ttCfg,callbacks:{
+        label:c=>` ${c.dataset.label}: ${c.raw.toLocaleString()} PAX`,
+        footer:items=>`Total: ${items.reduce((s,i)=>s+i.raw,0).toLocaleString()} PAX`
+      }}
+    },
+    scales:{
+      x:{grid:{color:GC},stacked:true},
+      y:{grid:{color:GC},stacked:true}
+    }
+  }
+});
+
+// ── GASTOS DETALLE DATA ──
+const GASTOS_DETAIL = {"Ene-25":{"Plataformas":[{"name":"BOKUN","usd":244.2,"mxn":4518}],"Marketing":[{"name":"GOOGLE","usd":6.8,"mxn":126}],"Impuestos":[],"Viajes":[],"Operativos":[],"Otros":[]},"Feb-25":{"Plataformas":[{"name":"BOKUN","usd":417.12,"mxn":7717},{"name":"IVA BOKUN AGO-DEC 2024","usd":117.96,"mxn":2182}],"Marketing":[{"name":"GOOGLE","usd":6.0,"mxn":111}],"Impuestos":[],"Viajes":[],"Operativos":[{"name":"WHATICKET","usd":58.8,"mxn":1088},{"name":"WHATSABLE","usd":8.39,"mxn":155},{"name":"CHIP CELULAR","usd":5.0,"mxn":93}],"Otros":[]},"Mar-25":{"Plataformas":[{"name":"BOKUN","usd":292.76,"mxn":2143}],"Marketing":[{"name":"GOOGLE","usd":10.28,"mxn":75}],"Impuestos":[],"Viajes":[],"Operativos":[{"name":"WHATICKET","usd":58.8,"mxn":430},{"name":"FOTOS GARIBALDI","usd":268.37,"mxn":1964},{"name":"FOTOS GARIBALDI (MXN)","mxn":2081}],"Otros":[]},"Abr-25":{"Plataformas":[{"name":"BOKUN","usd":233.17,"mxn":4313}],"Marketing":[{"name":"GOOGLE","usd":18.81,"mxn":348}],"Impuestos":[],"Viajes":[],"Operativos":[{"name":"WHATICKET","usd":58.8,"mxn":1088}],"Otros":[]},"May-25":{"Plataformas":[{"name":"BOKUN","usd":643.61,"mxn":12020},{"name":"TRIPADVISOR","usd":526.96,"mxn":9841},{"name":"COMIDA CHINO KLOOK (MXN)","mxn":2165}],"Marketing":[{"name":"GOOGLE","usd":23.32,"mxn":436}],"Impuestos":[],"Viajes":[],"Operativos":[],"Otros":[]},"Jun-25":{"Plataformas":[{"name":"BOKUN","usd":655.35,"mxn":20415}],"Marketing":[{"name":"GOOGLE","usd":23.32,"mxn":726}],"Impuestos":[],"Viajes":[{"name":"UBER BLACK PASAJEROS SF","usd":40.0,"mxn":1246}],"Operativos":[{"name":"TRUSTINDEX","usd":54.0,"mxn":1682}],"Otros":[{"name":"SCOUTING EXPERIENCIAS (MXN)","mxn":7752},{"name":"CENTRO DE NEGOCIOS (MXN)","mxn":3176},{"name":"HOODIES Y ROPA COLABORADORES (MXN)","mxn":4411}]},"Jul-25":{"Plataformas":[{"name":"BOKUN","usd":894.57,"mxn":16549}],"Marketing":[{"name":"GOOGLE","usd":47.29,"mxn":875}],"Impuestos":[],"Viajes":[],"Operativos":[{"name":"BASE DE DATOS","usd":191.0,"mxn":3534},{"name":"AGENCIA","usd":160.0,"mxn":2960}],"Otros":[]},"Ago-25":{"Plataformas":[{"name":"BOKUN","usd":925.23,"mxn":17116}],"Marketing":[{"name":"GOOGLE","usd":48.33,"mxn":894}],"Impuestos":[],"Viajes":[],"Operativos":[{"name":"BASE DE DATOS SALDO","usd":12.7,"mxn":235},{"name":"AGENCIA","usd":80.0,"mxn":1480},{"name":"DOMINIO","usd":20.9,"mxn":387}],"Otros":[]},"Sep-25":{"Plataformas":[{"name":"BOKUN","usd":1191.75,"mxn":30800}],"Marketing":[{"name":"LINKEDIN FG","usd":57.5,"mxn":1486},{"name":"GOOGLE","usd":23.97,"mxn":619}],"Impuestos":[],"Viajes":[{"name":"UBER","usd":20.0,"mxn":517}],"Operativos":[{"name":"VERIFICACIÓN WHATSAPP","usd":18.0,"mxn":465},{"name":"AGENCIA","usd":120.0,"mxn":3101},{"name":"SLIDER REVOLUTION WEB","usd":46.8,"mxn":1210}],"Otros":[]},"Oct-25":{"Plataformas":[{"name":"BOKUN","usd":1004.54,"mxn":21760},{"name":"VIATOR JOSUE","usd":16.65,"mxn":360},{"name":"VIATOR FABI","usd":14.27,"mxn":309}],"Marketing":[{"name":"LINKEDIN FG","usd":47.99,"mxn":1040},{"name":"GOOGLE","usd":23.98,"mxn":519}],"Impuestos":[{"name":"IMPUESTOS (MXN)","mxn":19418},{"name":"CONTADORA (MXN)","mxn":8691}],"Viajes":[{"name":"ARIVAL VALENCIA","usd":2063.05,"mxn":44690}],"Operativos":[{"name":"VERIFICACIÓN WHATSAPP","usd":18.0,"mxn":390},{"name":"AGENCIA","usd":120.0,"mxn":2599},{"name":"WALKWAY","usd":126.0,"mxn":2729}],"Otros":[{"name":"MULTAS CARRO WASHINGTON","usd":297.92,"mxn":6454},{"name":"DEVOLUCION CAGADA ALAN (MXN)","mxn":2997},{"name":"DEVOLUCION CAGADA LIZBETH (MXN)","mxn":1356}]},"Nov-25":{"Plataformas":[{"name":"BOKUN","usd":1162.24,"mxn":24804},{"name":"VIATOR JOSUE","usd":16.66,"mxn":355},{"name":"DEVOLUCIONES AIRBNB","usd":573.71,"mxn":12244},{"name":"VIATOR FABI","usd":16.67,"mxn":356}],"Marketing":[{"name":"LINKEDIN FG","usd":47.99,"mxn":1024},{"name":"GOOGLE","usd":23.33,"mxn":498}],"Impuestos":[{"name":"IMPUESTOS (MXN)","mxn":36321},{"name":"CONTADORA (MXN)","mxn":1275}],"Viajes":[{"name":"ENTRADAS FITUR","usd":37.94,"mxn":810},{"name":"VUELO JOSUE","usd":1580.03,"mxn":33720},{"name":"VUELO PEDRO","usd":1293.19,"mxn":27599}],"Operativos":[{"name":"VERIFICACIÓN WHATSAPP","usd":18.0,"mxn":384},{"name":"AGENCIA","usd":120.0,"mxn":2561},{"name":"WALKWAY","usd":126.0,"mxn":2689},{"name":"FOTOGRAFO PINTEREST (MXN)","mxn":1465}],"Otros":[]},"Dic-25":{"Plataformas":[{"name":"BOKUN","usd":1139.71,"mxn":28041},{"name":"VIATOR JOSUE","usd":58.53,"mxn":1440},{"name":"AIRBNB AJUSTE OSCAR","usd":225.0,"mxn":5535},{"name":"VIATOR FABI","usd":58.53,"mxn":1440}],"Marketing":[{"name":"LINKEDIN FG","usd":47.99,"mxn":1181},{"name":"GOOGLE","usd":25.4,"mxn":625},{"name":"GOOGLE REAJUSTE","usd":23.98,"mxn":590}],"Impuestos":[{"name":"IMPUESTOS (MXN)","mxn":20100},{"name":"CONTADORA (MXN)","mxn":1166}],"Viajes":[{"name":"TAXI AEROPUERTO MADRID","usd":52.5,"mxn":1292},{"name":"IFEMA JOSUE","usd":89.19,"mxn":2194},{"name":"METRO ESPAÑA","usd":31.0,"mxn":762},{"name":"UBER ESPAÑA","usd":196.8,"mxn":4842},{"name":"IFEMA OSCAR (MXN)","mxn":975},{"name":"TABERNA (MXN)","mxn":2468},{"name":"MERCADO DE LA REINA (MXN)","mxn":1168},{"name":"LA LUPITA (MXN)","mxn":2657}],"Operativos":[{"name":"VERIFICACIÓN WHATSAPP","usd":36.0,"mxn":886},{"name":"AGENCIA","usd":120.0,"mxn":2953},{"name":"WALKWAY","usd":126.0,"mxn":3100},{"name":"PROTON VPN","usd":12.08,"mxn":297},{"name":"CURSO AUTOMATIZACIONES","usd":102.28,"mxn":2516},{"name":"RECARGA CELULAR FG","usd":5.0,"mxn":123}],"Otros":[]},"Ene-26":{"Plataformas":[{"name":"BOKUN","usd":1060.97,"mxn":22008},{"name":"VIATOR JOSUE","usd":16.66,"mxn":345},{"name":"VIATOR FABI","usd":16.66,"mxn":345}],"Marketing":[{"name":"LINKEDIN FG","usd":47.98,"mxn":995},{"name":"FACEBOOK PAUTA","usd":577.3,"mxn":11975},{"name":"GOOGLE","usd":21.11,"mxn":438}],"Impuestos":[{"name":"IMPUESTOS (MXN)","mxn":10681},{"name":"CONTADORA (MXN)","mxn":900}],"Viajes":[],"Operativos":[{"name":"WHATSAPP","usd":58.53,"mxn":1214},{"name":"AGENCIA","usd":120.0,"mxn":2489},{"name":"WALKWAY","usd":126.0,"mxn":2613},{"name":"ANTROPIC IA","usd":18.0,"mxn":373},{"name":"VOCES AUDIO GUIA (ELEVEN LABS)","usd":26.4,"mxn":547},{"name":"SERVIDOS APP FG","usd":122.06,"mxn":2532},{"name":"SUELDO DOME CARDENAS","usd":806.0,"mxn":16719},{"name":"ARRIENDO OFICINA","usd":70.0,"mxn":1452},{"name":"SUELDO DOME CARDENAS (MXN)","mxn":6721},{"name":"ARRIENDO OFICINA (MXN)","mxn":1292}],"Otros":[{"name":"POST GLACE MADRID","usd":7.32,"mxn":152},{"name":"HOODIES (MXN)","mxn":3159},{"name":"DEVOLUCION (MXN)","mxn":1809}]}};
+
+const CAT_COLORS = {
+  'Plataformas': {bg:'rgba(108,99,255,0.2)', border:'#6c63ff', dot:'#6c63ff'},
+  'Marketing':   {bg:'rgba(77,159,255,0.2)', border:'#4d9fff', dot:'#4d9fff'},
+  'Impuestos':   {bg:'rgba(255,107,107,0.2)', border:'#ff6b6b', dot:'#ff6b6b'},
+  'Viajes':      {bg:'rgba(255,217,61,0.2)', border:'#ffd93d', dot:'#ffd93d'},
+  'Operativos':  {bg:'rgba(0,212,170,0.2)', border:'#00d4aa', dot:'#00d4aa'},
+  'Otros':       {bg:'rgba(162,155,254,0.2)', border:'#a29bfe', dot:'#a29bfe'},
+};
+
+function showGastosDetail(monthLabel, totalMxn) {
+  const data = GASTOS_DETAIL[monthLabel];
+  if (!data) return;
+  document.getElementById('modalTitle').textContent = `Gastos Admin — ${monthLabel}`;
+  document.getElementById('modalTotal').textContent = `Total: ${fmtN(totalMxn)} MXN`;
+  let html = '';
+  for (const [cat, items] of Object.entries(data)) {
+    if (!items.length) continue;
+    const col = CAT_COLORS[cat] || CAT_COLORS['Otros'];
+    const subtotal = items.reduce((s,i) => s + (i.mxn||0), 0);
+    html += `<div class="modal-cat">
+      <div class="modal-cat-hd">
+        <div class="modal-cat-dot" style="background:${col.dot}"></div>
+        <span style="color:${col.dot}">${cat}</span>
+        <span style="margin-left:auto;font-size:11px;color:#9196b0;font-weight:400">${fmtN(subtotal)} MXN</span>
+      </div>`;
+    for (const it of items) {
+      const usdStr = it.usd ? `<span class="modal-item-usd">USD $${it.usd.toFixed(2)}</span>` : `<span class="modal-item-usd">MXN directo</span>`;
+      html += `<div class="modal-item">
+        <span class="modal-item-name">${it.name.replace(' (MXN)','')}</span>
+        ${usdStr}
+        <span class="modal-item-mxn">${fmtN(it.mxn||0)}</span>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+  document.getElementById('modalBody').innerHTML = html;
+  const modal = document.getElementById('gastosModal');
+  modal.style.display = 'flex';
+  modal.onclick = e => { if(e.target === modal) modal.style.display = 'none'; };
+}
+
+// ── GASTOS ADMIN (apilado por categoría) ──
+const gastosChart = new Chart(document.getElementById('gastosChart'),{
+  type:'bar',
+  data:{labels:M,datasets:[
+    {label:'Plataformas',data:G_PLAT,backgroundColor:'rgba(108,99,255,0.7)',borderColor:'#6c63ff',borderWidth:1,stack:'g'},
+    {label:'Marketing',data:G_MARK,backgroundColor:'rgba(77,159,255,0.7)',borderColor:'#4d9fff',borderWidth:1,stack:'g'},
+    {label:'Impuestos',data:G_IMPU,backgroundColor:'rgba(255,107,107,0.7)',borderColor:'#ff6b6b',borderWidth:1,stack:'g'},
+    {label:'Viajes/Eventos',data:G_VIAJ,backgroundColor:'rgba(255,217,61,0.7)',borderColor:'#ffd93d',borderWidth:1,stack:'g'},
+    {label:'Operativos',data:G_OPER,backgroundColor:'rgba(0,212,170,0.7)',borderColor:'#00d4aa',borderWidth:1,stack:'g'},
+    {label:'Otros',data:G_OTRO,backgroundColor:'rgba(162,155,254,0.5)',borderColor:'#a29bfe',borderWidth:1,stack:'g'},
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{display:true,position:'bottom',labels:{color:'#9196b0',font:{size:11},boxWidth:11,padding:12}},
+      tooltip:{...ttCfg,callbacks:{
+        label:c=>c.raw>0?` ${c.dataset.label}: ${fmtN(c.raw)} MXN`:'',
+        footer:items=>`Total: ${fmtN(items.reduce((s,i)=>s+i.raw,0))} MXN`
+      }}
+    },
+    scales:{
+      x:{grid:{color:GC},stacked:true},
+      y:{grid:{color:GC},stacked:true,ticks:{callback:fmtK}}
+    },
+    onClick:(e,els)=>{
+      if(!els.length) return;
+      const i = els[0].index;
+      showGastosDetail(M[i], GA[i]);
+    }
+  }
+});
+document.getElementById('gastosChart').style.cursor='pointer';
+
+// ── MARGEN ──
+new Chart(document.getElementById('margenChart'),{
+  type:'line',
+  data:{labels:M,datasets:[
+    {data:MG,borderColor:'#00d4aa',backgroundColor:'rgba(0,212,170,0.08)',borderWidth:3,pointBackgroundColor:MG.map(v=>v>=40?'#00d4aa':v>=20?'#ffd93d':'#ff6b6b'),pointRadius:6,tension:.4,fill:true}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{...ttCfg,callbacks:{label:c=>` Margen: ${c.raw.toFixed(1)}%`}},
+      annotation:{}
+    },
+    scales:{
+      x:{grid:{color:GC}},
+      y:{grid:{color:GC},ticks:{callback:v=>v+'%'},min:0,max:80}
+    }
+  }
+});
+
+// ── PAX POR TOUR POR MES ──
+const PAX_TOURS = [
+  {key:'XOCHIMILCO', name:'Xochimilco-Frida',    color:'#6c63ff', pax:[208,340,487,579,425,321,537,538,344,618,888,855,676]},
+  {key:'PIRAMIDES',  name:'Pirámides',            color:'#ff8c42', pax:[15,25,83,69,53,53,109,160,182,173,226,161,90]},
+  {key:'BOLETOS',    name:'Boletos-Frida',         color:'#e84393', pax:[0,0,3,35,63,28,161,252,221,187,198,345,317]},
+  {key:'TELEFERICO', name:'Teleférico & Castillo', color:'#00b4d8', pax:[0,0,4,14,19,15,16,21,12,22,53,30,32]},
+  {key:'LUCHA',      name:'Lucha Libre',           color:'#a29bfe', pax:[0,0,4,2,2,21,21,17,10,16,28,21,7]},
+  {key:'EXP_CULINARIA',name:'Exp. Culinaria',     color:'#00d4aa', pax:[0,0,0,0,0,0,13,12,0,13,60,0,10]},
+  {key:'GARIBALDI',  name:'Garibaldi',             color:'#ffd93d', pax:[7,7,14,2,8,2,2,2,4,10,8,0,0]},
+  {key:'GLOBO',      name:'Globo Teotihuacan',     color:'#ff6b6b', pax:[2,0,0,3,0,0,0,0,0,0,0,0,0]},
+];
+
+// Line chart
+new Chart(document.getElementById('paxTourChart'), {
+  type:'line',
+  data:{
+    labels:M,
+    datasets: PAX_TOURS.filter(t=>t.pax.reduce((a,b)=>a+b,0)>0).map(t=>({
+      label: t.name,
+      data: t.pax.map(v=>v===0?null:v),
+      borderColor: t.color,
+      backgroundColor: t.color+'18',
+      borderWidth: 2.5,
+      pointBackgroundColor: t.color,
+      pointRadius: 4,
+      pointHoverRadius: 7,
+      tension: .4,
+      fill: false,
+      spanGaps: false
+    }))
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index', intersect:false},
+    plugins:{
+      legend:{display:false},
+      tooltip:{...ttCfg, callbacks:{
+        label: c => c.raw!=null ? ` ${c.dataset.label}: ${c.raw.toLocaleString()} PAX` : '',
+        footer: items => `Total: ${items.filter(i=>i.raw!=null).reduce((s,i)=>s+i.raw,0).toLocaleString()} PAX`
+      }}
+    },
+    scales:{
+      x:{grid:{color:GC}},
+      y:{grid:{color:GC}, ticks:{callback:v=>v.toLocaleString()}, beginAtZero:true}
+    }
+  }
+});
+
+// Custom legend
+const paxLegend = document.getElementById('paxTourLegend');
+PAX_TOURS.forEach(t=>{
+  const total = t.pax.reduce((a,b)=>a+b,0);
+  if(total===0) return;
+  paxLegend.innerHTML += `<div class="legend-i">
+    <div class="legend-d" style="background:${t.color}"></div>
+    ${t.name} <span style="color:var(--text);font-weight:600;margin-left:4px">${total.toLocaleString()}</span>
+  </div>`;
+});
+
+// PAX table
+const paxHead = document.getElementById('paxTourHead');
+const paxBody = document.getElementById('paxTourBody');
+paxHead.innerHTML = '<th>Experiencia</th>' + M.map(m=>`<th>${m}</th>`).join('') + '<th>TOTAL</th>';
+PAX_TOURS.forEach(t=>{
+  const total = t.pax.reduce((a,b)=>a+b,0);
+  if(total===0) return;
+  const maxPax = Math.max(...t.pax);
+  const cells = t.pax.map(v=>{
+    if(v===0) return `<td style="color:var(--text2);opacity:.4">—</td>`;
+    const isMax = v===maxPax;
+    return `<td style="${isMax?'color:'+t.color+';font-weight:700':''}">${v.toLocaleString()}</td>`;
+  }).join('');
+  paxBody.innerHTML += `<tr>
+    <td><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${t.color};margin-right:8px"></span><b>${t.name}</b></td>
+    ${cells}
+    <td style="color:var(--green);font-weight:700">${total.toLocaleString()}</td>
+  </tr>`;
+});
+// Total row
+const totals = M.map((_,i)=>PAX_TOURS.reduce((s,t)=>s+t.pax[i],0));
+const grandTotal = totals.reduce((a,b)=>a+b,0);
+paxBody.innerHTML += `<tr style="background:rgba(108,99,255,.06);font-weight:700">
+  <td>TOTAL</td>
+  ${totals.map(v=>`<td>${v.toLocaleString()}</td>`).join('')}
+  <td style="color:var(--green)">${grandTotal.toLocaleString()}</td>
+</tr>`;
+
+// ── COSTOS POR EXPERIENCIA ──
+const TOUR_DATA = {};
+TOUR_DATA['XOCHIMILCO'] = {name:'Xochimilco-Frida', color:'#6c63ff', costs:[578,531,562,497,516,490,489,481,495,852,799,840,834], ventas:[1476,1455,1488,1287,1292,1232,1234,1062,770,865,781,714,759], pax:[208,340,487,579,425,321,537,538,344,618,888,855,676]};
+TOUR_DATA['PIRAMIDES']  = {name:'Pirámides Teotihuacan', color:'#ff8c42', costs:[80,104,333,253,522,421,569,686,676,803,671,704,931], ventas:[123,626,713,623,928,809,882,1067,1042,937,1017,1047,970], pax:[15,25,83,69,53,53,109,160,182,173,226,161,90]};
+TOUR_DATA['GARIBALDI']  = {name:'Garibaldi', color:'#ffd93d', costs:[674,909,884,619,563,513,513,464,843,1060,1445,null,null], ventas:[1237,1472,1483,1289,1170,1183,1183,1134,1513,1517,1567,null,null], pax:[7,7,14,2,8,2,2,2,4,10,8,0,0]};
+TOUR_DATA['BOLETOS']    = {name:'Boletos-Frida', color:'#e84393', costs:[null,null,null,6,57,58,86,109,86,92,30,89,1], ventas:[null,null,null,211,530,488,535,569,537,172,277,188,339], pax:[0,0,3,35,63,28,161,252,221,187,198,345,317]};
+TOUR_DATA['TELEFERICO'] = {name:'Teleférico & Castillo', color:'#00b4d8', costs:[null,null,64,318,168,311,324,286,304,62,700,657,440], ventas:[null,null,615,1406,857,1342,1371,1242,1452,892,2070,612,1309], pax:[0,0,4,14,19,15,16,21,12,22,53,30,32]};
+TOUR_DATA['LUCHA']      = {name:'Lucha Libre', color:'#a29bfe', costs:[null,null,250,650,475,387,291,455,175,512,41,146,587], ventas:[null,null,1116,1137,1137,1151,854,258,null,163,1057,967,409], pax:[0,0,4,2,2,21,21,17,10,16,28,21,7]};
+TOUR_DATA['EXP_CULINARIA']={name:'Exp. Culinaria Frida', color:'#00d4aa', costs:[null,null,null,null,null,null,46,163,null,650,453,null,722], ventas:[null,null,null,null,null,null,1262,904,null,110,1820,null,1669], pax:[0,0,0,0,0,0,13,12,0,13,60,0,10]};
+TOUR_DATA['GLOBO']      = {name:'Globo Teotihuacan', color:'#ffd93d', costs:[243,null,null,452,null,null,null,null,null,null,null,null,null], ventas:[3100,null,null,4100,null,null,null,null,null,null,null,null,null], pax:[2,0,0,3,0,0,0,0,0,0,0,0,0]};
+
+(function buildTourWidgets(){
+  const grid = document.getElementById('tourGrid');
+  const months = M;
+
+  Object.entries(TOUR_DATA).forEach(([key, td]) => {
+    // Find last two non-null cost values for trend
+    const validCosts = td.costs.map((c,i)=>c!=null?{c,i}:null).filter(Boolean);
+    const lastC = validCosts[validCosts.length-1];
+    const prevC = validCosts[validCosts.length-2];
+    const lastMes = lastC ? months[lastC.i] : '—';
+    const lastCosto = lastC ? lastC.c : 0;
+    const lastVenta = lastC ? (td.ventas[lastC.i]||0) : 0;
+    const totalPax = td.pax.reduce((a,b)=>a+b,0);
+    const lastPax = lastC ? td.pax[lastC.i] : 0;
+    const margin = lastVenta>0 ? Math.round((lastVenta-lastCosto)/lastVenta*100) : null;
+
+    // Trend vs previous
+    let trendClass='ok', trendIcon='→', trendLabel='Estable';
+    if (prevC && lastC) {
+      const delta = lastC.c - prevC.c;
+      const pct = Math.abs(Math.round(delta/prevC.c*100));
+      if (delta > prevC.c * 0.05) { trendClass='up'; trendIcon='↑'; trendLabel=`+${pct}% costo`; }
+      else if (delta < -prevC.c * 0.05) { trendClass='dn'; trendIcon='↓'; trendLabel=`-${pct}% costo`; }
+      else { trendLabel='Estable'; }
+    }
+
+    // Check if tour is inactive (no recent pax)
+    const recentPax = td.pax.slice(-3).reduce((a,b)=>a+b,0);
+
+    // Build card
+    const card = document.createElement('div');
+    card.className = 'tour-card';
+    card.style.borderTop = `3px solid ${td.color}`;
+    card.innerHTML = `
+      <div class="tour-card-hd">
+        <div class="tour-card-name">${td.name}</div>
+        <span class="tour-trend ${trendClass}">${trendIcon} ${trendLabel}</span>
+      </div>
+      <div class="tour-card-pax">${totalPax.toLocaleString()} PAX acumulado · Último mes activo: ${lastMes}</div>
+      <div class="tour-stat-row">
+        <div class="tour-stat">
+          <div class="tour-stat-val" style="color:${td.color}">$${lastCosto.toLocaleString()}</div>
+          <div class="tour-stat-lbl">Costo/PAX último mes</div>
+        </div>
+        <div class="tour-stat">
+          <div class="tour-stat-val" style="color:var(--text2)">${lastPax.toLocaleString()}</div>
+          <div class="tour-stat-lbl">PAX último mes</div>
+        </div>
+      </div>
+      <div style="height:110px"><canvas id="tourChart_${key}"></canvas></div>
+      <div class="tour-click-hint">👆 Clic en un punto para ver desglose</div>
+    `;
+    grid.appendChild(card);
+
+    // Build mini chart
+    const validIdx = td.costs.map((c,i)=>c!=null?i:null).filter(i=>i!=null);
+    const chartLabels = validIdx.map(i=>months[i]);
+    const chartCosts  = validIdx.map(i=>td.costs[i]);
+
+    const miniChart = new Chart(document.getElementById(`tourChart_${key}`), {
+      type:'line',
+      data:{labels:chartLabels, datasets:[
+        {label:'Costo/PAX', data:chartCosts, borderColor:td.color, backgroundColor:td.color.replace(')',',0.08)').replace('rgb','rgba'), borderWidth:2.5, pointRadius:5, pointHoverRadius:7, pointBackgroundColor:td.color, tension:.4, fill:true, spanGaps:true}
+      ]},
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        interaction:{mode:'index',intersect:false},
+        plugins:{
+          legend:{display:false},
+          tooltip:{...ttCfg, callbacks:{label:c=>` ${c.dataset.label}: $${Math.round(c.raw).toLocaleString()}`}}
+        },
+        scales:{
+          x:{display:true, grid:{display:false}, ticks:{color:'#9196b0',font:{size:9}, maxRotation:0}},
+          y:{display:true, grid:{color:'rgba(42,45,62,0.6)'}, ticks:{color:'#9196b0',font:{size:9},callback:v=>'$'+Math.round(v/1000)+'K'}}
+        },
+        onClick:(e, els)=>{
+          if(!els.length) return;
+          const mLabel = chartLabels[els[0].index];
+          const bdata  = TOUR_BREAKDOWN[key]?.[mLabel];
+          if(bdata) showTourBreakdown(td.name, td.color, mLabel, bdata);
+        }
+      }
+    });
+    document.getElementById(`tourChart_${key}`).style.cursor='pointer';
+  });
+})();
+
+// ── TOUR_BREAKDOWN DATA ──
+const TOUR_BREAKDOWN = {"XOCHIMILCO":{"Ene-25":{"pax":208,"components":{"COSTO BOLETO FRIDA":379,"GAS":52,"TRAJINERA":62,"MARIACHI":40,"CHURROS":29,"AGUA+ DULCE":15,"TACOS+LT":1}},"Feb-25":{"pax":340,"components":{"COSTO BOLETO FRIDA":336,"GAS":59,"TRAJINERA":53,"MARIACHI":34,"CHURROS":29,"AGUA+ DULCE":15,"TACOS+LT":5}},"Mar-25":{"pax":487,"components":{"COSTO BOLETO FRIDA":314,"GAS":118,"TRAJINERA":48,"MARIACHI":31,"CHURROS":29,"AGUA+ DULCE":15,"TACOS+LT":8}},"Abr-25":{"pax":579,"components":{"COSTO BOLETO FRIDA":296,"GAS":74,"TRAJINERA":51,"MARIACHI":33,"CHURROS":28,"AGUA+ DULCE":14}},"May-25":{"pax":425,"components":{"COSTO BOLETO FRIDA":322,"GAS":61,"TRAJINERA":53,"MARIACHI":35,"CHURROS":29,"AGUA+ DULCE":15}},"Jun-25":{"pax":321,"components":{"COSTO BOLETO FRIDA":315,"GAS":50,"TRAJINERA":49,"MARIACHI":32,"CHURROS":30,"AGUA+ DULCE":15}},"Jul-25":{"pax":537,"components":{"COSTO BOLETO FRIDA":317,"GAS":49,"TRAJINERA":47,"MARIACHI":32,"CHURROS":29,"AGUA+ DULCE":15}},"Ago-25":{"pax":538,"components":{"COSTO BOLETO FRIDA":319,"GAS":42,"TRAJINERA":46,"MARIACHI":30,"CHURROS":29,"AGUA+ DULCE":15}},"Sep-25":{"pax":344,"components":{"COSTO BOLETO FRIDA":312,"GAS":48,"TRAJINERA":57,"MARIACHI":37,"CHURROS":28,"AGUA+ DULCE":14}},"Oct-25":{"pax":618,"components":{"COSTO BOLETO FRIDA":330,"GAS":33,"TRAJINERA":48,"MARIACHI":31,"CHURROS":29,"AGUA":10,"GUIA":122}},"Nov-25":{"pax":888,"components":{"COSTO BOLETO FRIDA":320,"GAS":28,"TRAJINERA":43,"MARIACHI":28,"CHURROS":29,"AGUA":10,"GUIA":107}},"Dic-25":{"pax":855,"components":{"COSTO BOLETO FRIDA":327,"GAS":25,"TRAJINERA":43,"MARIACHI":28,"CHURROS":29,"AGUA":14,"GUIA":114}},"Ene-26":{"pax":655,"components":{"COSTO BOLETO FRIDA":323,"GAS":34,"TRAJINERA":43,"MARIACHI":28,"CHURROS":34,"AGUA":10,"GUIA":123}}},"GARIBALDI":{"Ene-25":{"pax":7,"components":{"TACOS":100,"JUGO":40,"MARIACHI":51,"GUADALAJARA":280,"PARQUEO":34,"GAS":57}},"Feb-25":{"pax":7,"components":{"TACOS":100,"JUGO":40,"MARIACHI":51,"GUADALAJARA":280,"PARQUEO":34,"GAS":57}},"Mar-25":{"pax":14,"components":{"TACOS":100,"JUGO":40,"MARIACHI":64,"GUADALAJARA":280,"PARQUEO":43,"GAS":71}},"Abr-25":{"pax":2,"components":{"TACOS":100,"JUGO":40,"MARIACHI":90,"GUADALAJARA":280,"PARQUEO":60,"GAS":100}},"May-25":{"pax":8,"components":{"TACOS":100,"JUGO":40,"MARIACHI":68,"GUADALAJARA":280,"PARQUEO":45,"GAS":75}},"Jun-25":{"pax":2,"components":{"TACOS":100,"JUGO":40,"MARIACHI":90,"GUADALAJARA":280,"PARQUEO":60,"GAS":100}},"Jul-25":{"pax":2,"components":{"TACOS":100,"JUGO":40,"MARIACHI":90,"GUADALAJARA":280,"PARQUEO":60,"GAS":100}},"Ago-25":{"pax":2,"components":{"TACOS":100,"JUGO":40,"MARIACHI":90,"GUADALAJARA":280,"PARQUEO":60,"GAS":100}},"Sep-25":{"pax":4,"components":{"TACOS":100,"JUGO":40,"MARIACHI":90,"GUADALAJARA":280,"PARQUEO":60,"GAS":100}},"Oct-25":{"pax":10,"components":{"TACOS":100,"JUGO":40,"MARIACHI":36,"GUADALAJARA":280,"PARQUEO":24,"GAS":40,"CAMIONETA":200,"OPERADOR":100,"GUIA":240}},"Nov-25":{"pax":8,"components":{"TACOS":100,"JUGO":40,"MARIACHI":68,"GUADALAJARA":280,"PARQUEO":45,"GAS":75,"CAMIONETA":325,"OPERADOR":62,"GUIA":450}}},"PIRAMIDES":{"Ene-25":{"pax":2,"components":{"GLOBO":1800,"ENTRADA ZA":95,"CASETA":100,"PARQUEO":45,"GASOLINA":250}},"Feb-25":{"pax":25,"components":{"CASETA":64,"ENTRADA":91,"AGUA":14,"CUEVA":67,"PARQUEO":25,"GASOLINA":260}},"Mar-25":{"pax":83,"components":{"CASETA":36,"ENTRADA":92,"AGUA":14,"CUEVA":67,"PARQUEO":14,"GASOLINA":157}},"Abr-25":{"pax":3,"components":{"GLOBO":1800,"ENTRADA ZA":95,"CASETA":67,"COMIDA":297,"GASOLINA":333}},"May-25":{"pax":53,"components":{"CASETA":45,"ENTRADA":95,"AGUA":15,"CUEVA":70,"PARQUEO":20,"GASOLINA":160}},"Jun-25":{"pax":53,"components":{"CASETA":53,"ENTRADA":95,"AGUA":15,"CUEVA":70,"PARQUEO":24,"GASOLINA":132}},"Jul-25":{"pax":109,"components":{"CASETA":37,"ENTRADA":89,"AGUA":14,"CUEVA":66,"PARQUEO":17,"GASOLINA":92}},"Ago-25":{"pax":160,"components":{"CASETA":31,"ENTRADA":93,"AGUA":15,"CUEVA":68,"PARQUEO":12,"GASOLINA":161}},"Sep-25":{"pax":182,"components":{"CASETA":25,"PARQUEO":12,"GASOLINA":150}},"Oct-25":{"pax":173,"components":{"CASETA":34,"ENTRADA":94,"AGUA":10,"CUEVA":69,"PARQUEO":14,"GASOLINA":76,"CAMIONETA":250,"OPERADOR":64,"GUIA":193}},"Nov-25":{"pax":226,"components":{"CASETA":23,"ENTRADA":90,"AGUA":15,"CUEVA":67,"PARQUEO":10,"GASOLINA":53,"CAMIONETA":221,"OPERADOR":46,"GUIA":145}},"Dic-25":{"pax":161,"components":{"CASETA":30,"ENTRADA":81,"AGUA":9,"CUEVA":60,"PARQUEO":12,"GASOLINA":66,"CAMIONETA":215,"OPERADOR":53,"GUIA":179}},"Ene-26":{"pax":90,"components":{"CASETA":34,"ENTRADA":203,"AGUA":10,"CUEVA":68,"PARQUEO":14,"GASOLINA":71,"CAMIONETA":262,"OPERADOR":67,"GUIA":204}}},"TELEFERICO":{"Mar-25":{"pax":4,"components":{"TELEFERICO":30,"CASTILLO":150,"CAFE & TACOS":120,"GASOLINA":100}},"Abr-25":{"pax":14,"components":{"TELEFERICO":17,"CASTILLO":114,"CAFE & TACOS":77,"GASOLINA":114,"MUSEO ANTROPO.":21}},"May-25":{"pax":19,"components":{"TELEFERICO":25,"CASTILLO":100,"CAFE & TACOS":120,"GASOLINA":53}},"Jun-25":{"pax":15,"components":{"TELEFERICO":20,"CASTILLO":100,"CAFE & TACOS":120,"GASOLINA":67}},"Jul-25":{"pax":16,"components":{"TELEFERICO":20,"CASTILLO":100,"CAFE & TACOS":120,"GASOLINA":50}},"Ago-25":{"pax":21,"components":{"TELEFERICO":20,"CASTILLO":100,"CAFE & TACOS":120,"GASOLINA":48}},"Sep-25":{"pax":12,"components":{"TELEFERICO":20,"CASTILLO":100,"CAFE & TACOS":120,"GASOLINA":100,"MUSEO ANTROPO.":100}},"Oct-25":{"pax":22,"components":{"TELEFERICO":18,"CASTILLO":91,"CAFE & TACOS":109,"GASOLINA":45,"MUSEO ANTROPO.":77,"CAMIONETA":182}},"Nov-25":{"pax":53,"components":{"TELEFERICO":33,"CASTILLO":166,"CAFE & TACOS":222,"GASOLINA":15,"MUSEO ANTROPO.":166,"CAMIONETA":406,"GUIA":362}},"Dic-25":{"pax":30,"components":{"TELEFERICO":35,"CASTILLO":173,"CAFE & TACOS":208,"GASOLINA":40,"MUSEO ANTROPO.":160,"CAMIONETA":267,"OPERADOR":67,"GUIA":320}},"Ene-26":{"pax":32,"components":{"TELEFERICO":31,"CASTILLO":328,"CAFE & TACOS":188,"GASOLINA":69,"MUSEO ANTROPO.":308,"CAMIONETA":266,"OPERADOR":112,"GUIA":447}}},"LUCHA":{"Mar-25":{"pax":4,"components":{"ENTRADA":250,"CHELA O PULKE":150,"MASCARAS":100,"GASOLINA":125}},"Abr-25":{"pax":2,"components":{"ENTRADA":650,"CHELA O PULKE":150,"MASCARAS":100,"GASOLINA":125}},"May-25":{"pax":2,"components":{"ENTRADA":475,"CHELA O PULKE":150,"LLAVEROS":50,"GASOLINA":125}},"Jun-25":{"pax":21,"components":{"ENTRADA":387,"CHELA O PULKE":236,"LLAVEROS":89,"GASOLINA":48}},"Jul-25":{"pax":21,"components":{"ENTRADA":291,"CHELA O PULKE":155,"LLAVEROS":50,"GASOLINA":60}},"Ago-25":{"pax":17,"components":{"ENTRADA":455,"CHELA O PULKE":150,"LLAVEROS":50,"GASOLINA":74}},"Sep-25":{"pax":10,"components":{"ENTRADA":175,"CHELA O PULKE":105,"LLAVEROS":35,"GASOLINA":50}},"Oct-25":{"pax":16,"components":{"ENTRADA":512,"CHELA O PULKE":150,"LLAVEROS":50,"GASOLINA":78,"CAMIONETA":364,"OPERADOR":62,"GUIA":375}},"Nov-25":{"pax":28,"components":{"ENTRADA":371,"CHELA O PULKE":156,"LLAVEROS":50,"GASOLINA":27,"CAMIONETA":329,"OPERADOR":36,"GUIA":171}},"Dic-25":{"pax":21,"components":{"ENTRADA":495,"CHELA O PULKE":150,"LLAVEROS":50,"GASOLINA":48,"CAMIONETA":239,"OPERADOR":48,"GUIA":229}},"Ene-26":{"pax":7,"components":{"ENTRADA":357,"CHELA O PULKE":150,"LLAVEROS":69,"GASOLINA":107,"CAMIONETA":343,"GUIA":557}}},"EXP_CULINARIA":{"Mar-25":{"pax":2,"components":{"EXPERIENCIA CULINARIA":650,"COSTO BOLETO FRIDA":800,"CAFE":40,"CHURRO":30,"GASOLINA":175}},"Jul-25":{"pax":13,"components":{"EXPERIENCIA CULINARIA":650,"COSTO BOLETO FRIDA":336,"CAFE":40,"CHURRO":30,"GASOLINA":54}},"Ago-25":{"pax":12,"components":{"EXPERIENCIA CULINARIA":650,"COSTO BOLETO FRIDA":474,"CAFE":40,"CHURRO":30,"GASOLINA":254}},"Oct-25":{"pax":13,"components":{"EXPERIENCIA CULINARIA":650,"COSTO BOLETO FRIDA":336,"CAFE":40,"CHURRO":30,"GASOLINA":54,"CAMIONETA":263,"OPERADOR":77,"GUIA":185}},"Nov-25":{"pax":60,"components":{"EXPERIENCIA CULINARIA":650,"COSTO BOLETO FRIDA":336,"CAFE":40,"CHURRO":30,"GASOLINA":6,"CAMIONETA":237,"OPERADOR":8,"GUIA":60}},"Ene-26":{"pax":10,"components":{"EXPERIENCIA CULINARIA":130,"COSTO BOLETO FRIDA":336,"CAFE":50,"CHURRO":35,"GASOLINA":35,"CAMIONETA":171,"OPERADOR":60,"GUIA":130}}},"BOLETOS":{"Abr-25":{"pax":35,"components":{"COSTO BOLETO FRIDA":192}},"May-25":{"pax":63,"components":{"COSTO BOLETO FRIDA":416}},"Jun-25":{"pax":28,"components":{"COSTO BOLETO FRIDA":372}},"Jul-25":{"pax":161,"components":{"COSTO BOLETO FRIDA":363}},"Ago-25":{"pax":252,"components":{"COSTO BOLETO FRIDA":351}},"Sep-25":{"pax":221,"components":{"COSTO BOLETO FRIDA":366}},"Oct-25":{"pax":187,"components":{"COSTO BOLETO FRIDA":357}},"Nov-25":{"pax":198,"components":{"COSTO BOLETO FRIDA":338}},"Dic-25":{"pax":345,"components":{"COSTO BOLETO FRIDA":366}},"Ene-26":{"pax":317,"components":{"COSTO BOLETO FRIDA":336}}}};
+
+function showTourBreakdown(tourName, color, mes, bdata) {
+  const comps = bdata.components;
+  const pax   = bdata.pax;
+  const vals  = Object.values(comps);
+  const total = vals.reduce((a,b)=>a+b,0);
+  const maxVal = Math.max(...vals);
+
+  document.getElementById('tbModalTitle').textContent = tourName + ' — ' + mes;
+  document.getElementById('tbModalSub').textContent   = `${pax.toLocaleString()} PAX · Costo total por persona: $${total.toLocaleString()} MXN`;
+
+  let html = '';
+  for(const [name, val] of Object.entries(comps)) {
+    const pct = Math.round(val/total*100);
+    const barW = Math.round(val/maxVal*100);
+    const cleanName = name.replace('COSTO BOLETO FRIDA','Boleto Frida')
+                          .replace('CAFE & TACOS','Café & Tacos')
+                          .replace('CHELA O PULKE','Chela/Pulque')
+                          .replace('MUSEO ANTROPO.','Museo Antrop.')
+                          .replace('EXPERIENCIA CULINARIA','Exp. Culinaria')
+                          .replace('GUADALAJARA','Mariachi Gdl.')
+                          .replace('REFRESCOS Y BOTANAS','Refrescos+Botanas');
+    html += `<div class="tb-modal-row">
+      <span class="tb-modal-name">${cleanName.toLowerCase()}</span>
+      <div class="tb-modal-bar-wrap"><div class="tb-modal-bar" style="width:${barW}%;background:${color}"></div></div>
+      <span class="tb-modal-val">$${val.toLocaleString()} <span style="color:#9196b0;font-size:11px;font-weight:400">${pct}%</span></span>
+    </div>`;
+  }
+  html += `<div class="tb-modal-total">
+    <span style="color:var(--text2)">TOTAL / PAX</span>
+    <span style="color:${color}">$${total.toLocaleString()} MXN</span>
+  </div>`;
+  if(total < (TOUR_DATA[Object.keys(TOUR_DATA).find(k=>TOUR_DATA[k].name===tourName)||'']?.costs[M.indexOf(mes)]||0)) {
+    html += `<div style="font-size:11px;color:var(--text2);margin-top:8px;opacity:.7">⚠️ Algunos costos (camioneta/operador) no disponibles en resumen mensual</div>`;
+  }
+
+  document.getElementById('tbModalBody').innerHTML = html;
+  const modal = document.getElementById('tourBreakModal');
+  modal.style.display='flex';
+  modal.onclick = e => { if(e.target===modal) modal.style.display='none'; };
+}
+
+const tb=document.getElementById('tbody');
+let sV=0,sP=0,sUT=0,sGA=0,sUN=0;
+M.forEach((m,i)=>{
+  const mg=MG[i];
+  sV+=V[i];sP+=P[i];sUT+=UT[i];sGA+=GA[i];sUN+=UN[i];
+  tb.innerHTML+=`<tr>
+    <td><b>${m}</b></td>
+    <td>${P[i].toLocaleString()}</td>
+    <td>${fmtN(V[i])}</td>
+    <td>${fmtN(TK[i])}</td>
+    <td>${fmtN(UT[i])}</td>
+    <td style="color:var(--red)">${fmtN(GA[i])}</td>
+    <td class="${UN[i]>=0?'pos':'neg'}">${fmtN(UN[i])}</td>
+    <td><span class="tag ${mg>=40?'up':mg>=20?'mid':'dn'}">${mg.toFixed(1)}%</span></td>
+  </tr>`;
+});
+const sMG=sUN/sV*100;
+tb.innerHTML+=`<tr style="background:rgba(108,99,255,.06);font-weight:700">
+  <td>TOTAL</td><td>${sP.toLocaleString()}</td><td>${fmtN(sV)}</td><td>${fmtN(sV/sP)}</td>
+  <td>${fmtN(sUT)}</td><td style="color:var(--red)">${fmtN(sGA)}</td>
+  <td class="pos">${fmtN(sUN)}</td><td><span class="tag up">${sMG.toFixed(1)}%</span></td>
+</tr>`;
+</script>
+</body>
+</html>
