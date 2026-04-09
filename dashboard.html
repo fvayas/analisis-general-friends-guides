@@ -19,7 +19,8 @@
   .sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
 
   .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
-  .kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 24px;position:relative;overflow:hidden}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 24px;position:relative;overflow:visible}
+  .kpi::before{border-radius:14px 14px 0 0}
   .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0}
   .kpi.c1::before{background:linear-gradient(90deg,var(--accent),var(--blue))}
   .kpi.c2::before{background:linear-gradient(90deg,var(--green),var(--teal))}
