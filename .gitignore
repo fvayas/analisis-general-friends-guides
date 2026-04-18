@@ -1,2 +1,8 @@
 datos/
 *.md
+
+# macOS
+.DS_Store
+
+# Claude Code local config
+.claude/
