@@ -737,14 +737,14 @@ paxBody.innerHTML += `<tr style="background:rgba(108,99,255,.06);font-weight:700
 
 // ── COSTOS POR EXPERIENCIA ──
 const TOUR_DATA = {};
-TOUR_DATA['XOCHIMILCO'] = {name:'Xochimilco-Frida', color:'#6c63ff', costs:[578,531,562,497,516,490,489,481,495,852,799,840,834], ventas:[1476,1455,1488,1287,1292,1232,1234,1062,770,865,781,714,759], pax:[208,340,487,579,425,321,537,538,344,618,888,855,676]};
-TOUR_DATA['PIRAMIDES']  = {name:'Pirámides Teotihuacan', color:'#ff8c42', costs:[80,104,333,253,522,421,569,686,676,803,671,704,931], ventas:[123,626,713,623,928,809,882,1067,1042,937,1017,1047,970], pax:[15,25,83,69,53,53,109,160,182,173,226,161,90]};
-TOUR_DATA['GARIBALDI']  = {name:'Garibaldi', color:'#ffd93d', costs:[674,909,884,619,563,513,513,464,843,1060,1445,null,null], ventas:[1237,1472,1483,1289,1170,1183,1183,1134,1513,1517,1567,null,null], pax:[7,7,14,2,8,2,2,2,4,10,8,0,0]};
-TOUR_DATA['BOLETOS']    = {name:'Boletos-Frida', color:'#e84393', costs:[null,null,null,6,57,58,86,109,86,92,30,89,1], ventas:[null,null,null,211,530,488,535,569,537,172,277,188,339], pax:[0,0,3,35,63,28,161,252,221,187,198,345,317]};
-TOUR_DATA['TELEFERICO'] = {name:'Teleférico & Castillo', color:'#00b4d8', costs:[null,null,64,318,168,311,324,286,304,62,700,657,440], ventas:[null,null,615,1406,857,1342,1371,1242,1452,892,2070,612,1309], pax:[0,0,4,14,19,15,16,21,12,22,53,30,32]};
-TOUR_DATA['LUCHA']      = {name:'Lucha Libre', color:'#a29bfe', costs:[null,null,250,650,475,387,291,455,175,512,41,146,587], ventas:[null,null,1116,1137,1137,1151,854,258,null,163,1057,967,409], pax:[0,0,4,2,2,21,21,17,10,16,28,21,7]};
-TOUR_DATA['EXP_CULINARIA']={name:'Exp. Culinaria Frida', color:'#00d4aa', costs:[null,null,null,null,null,null,46,163,null,650,453,null,722], ventas:[null,null,null,null,null,null,1262,904,null,110,1820,null,1669], pax:[0,0,0,0,0,0,13,12,0,13,60,0,10]};
-TOUR_DATA['GLOBO']      = {name:'Globo Teotihuacan', color:'#ffd93d', costs:[243,null,null,452,null,null,null,null,null,null,null,null,null], ventas:[3100,null,null,4100,null,null,null,null,null,null,null,null,null], pax:[2,0,0,3,0,0,0,0,0,0,0,0,0]};
+TOUR_DATA['XOCHIMILCO'] = {name:'Xochimilco-Frida', color:'#6c63ff', costs:[578,531,562,497,516,490,489,481,495,852,799,840,834,852], ventas:[1476,1455,1488,1287,1292,1232,1234,1062,770,865,781,714,759,null], pax:[208,340,487,579,425,321,537,538,344,618,888,855,676,736]};
+TOUR_DATA['PIRAMIDES']  = {name:'Pirámides Teotihuacan', color:'#ff8c42', costs:[80,104,333,253,522,421,569,686,676,803,671,704,931,863], ventas:[123,626,713,623,928,809,882,1067,1042,937,1017,1047,970,null], pax:[15,25,83,69,53,53,109,160,182,173,226,161,90,179]};
+TOUR_DATA['GARIBALDI']  = {name:'Garibaldi', color:'#ffd93d', costs:[674,909,884,619,563,513,513,464,843,1060,1445,null,null,null], ventas:[1237,1472,1483,1289,1170,1183,1183,1134,1513,1517,1567,null,null,null], pax:[7,7,14,2,8,2,2,2,4,10,8,0,0,0]};
+TOUR_DATA['BOLETOS']    = {name:'Boletos-Frida', color:'#e84393', costs:[null,null,null,6,57,58,86,109,86,92,30,89,1,338], ventas:[null,null,null,211,530,488,535,569,537,172,277,188,339,null], pax:[0,0,3,35,63,28,161,252,221,187,198,345,317,289]};
+TOUR_DATA['TELEFERICO'] = {name:'Teleférico & Castillo', color:'#00b4d8', costs:[null,null,64,318,168,311,324,286,304,62,700,657,440,1522], ventas:[null,null,615,1406,857,1342,1371,1242,1452,892,2070,612,1309,null], pax:[0,0,4,14,19,15,16,21,12,22,53,30,32,39]};
+TOUR_DATA['LUCHA']      = {name:'Lucha Libre', color:'#a29bfe', costs:[null,null,250,650,475,387,291,455,175,512,41,146,587,null], ventas:[null,null,1116,1137,1137,1151,854,258,null,163,1057,967,409,null], pax:[0,0,4,2,2,21,21,17,10,16,28,21,7,0]};
+TOUR_DATA['EXP_CULINARIA']={name:'Exp. Culinaria Frida', color:'#00d4aa', costs:[null,null,null,null,null,null,46,163,null,650,453,null,722,null], ventas:[null,null,null,null,null,null,1262,904,null,110,1820,null,1669,null], pax:[0,0,0,0,0,0,13,12,0,13,60,0,10,0]};
+TOUR_DATA['GLOBO']      = {name:'Globo Teotihuacan', color:'#ffd93d', costs:[243,null,null,452,null,null,null,null,null,null,null,null,null,null], ventas:[3100,null,null,4100,null,null,null,null,null,null,null,null,null,null], pax:[2,0,0,3,0,0,0,0,0,0,0,0,0,0]};
 
 (function buildTourWidgets(){
   const grid = document.getElementById('tourGrid');
