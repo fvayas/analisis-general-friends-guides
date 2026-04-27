@@ -441,10 +441,9 @@ const PB = [0,0,3,35,63,28,161,252,221,187,198,345,317,289];   // PAX Boletos-Fr
 const PO = [232,372,594,669,507,412,698,750,552,852,1263,1067,815,954]; // PAX Otros tours
 const VB = [0,0,0,7399,33370,13659,86195,143391,118713,32226,54839,64695,107351,85970]; // Venta Boletos-Frida
 const VO = [323810,520483,811584,825155,626298,485025,817731,785420,477970,735614,1184677,817917,661585,667887]; // Venta tours regulares
-// Ticket tours regulares incluye venta de plataformas (GYG/Klook/Civitatis/etc) = V - VB
-const TK_REG  = PO.map((p,i)=>p>0?(V[i]-VB[i])/p:null); // Ticket tours regulares (incl. plataformas)
-const TK_BOL  = PB.map((p,i)=>p>0?VB[i]/p:null);        // Ticket Boletos-Frida
-const TK      = PO.map((p,i)=>p>0?(V[i]-VB[i])/p:null); // Usado en tabla
+const TK_REG  = PO.map((p,i)=>p>0?VO[i]/p:null); // Ticket tours regulares (sin Boletos)
+const TK_BOL  = PB.map((p,i)=>p>0?VB[i]/p:null); // Ticket Boletos-Frida
+const TK = PO.map((p,i)=>p>0?VO[i]/p:null); // Usado en tabla (tours regulares)
 const MG = UN.map((u,i)=>V[i]>0?(u/V[i]*100):0);
 
 // ── TOOLTIP POSITIONING (fixed, avoids overflow clipping) ──
