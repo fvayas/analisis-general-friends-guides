@@ -386,11 +386,15 @@
   </div>
   <div class="crd" style="margin-bottom:24px;border:1px solid rgba(255,217,61,.25);background:linear-gradient(135deg,#1a1d27,#1e2030)">
 
-    <!-- Tipo de cambio -->
+    <!-- Tipo de cambio + Toggle moneda -->
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:28px;flex-wrap:wrap">
       <div style="font-size:11px;color:var(--text2);font-weight:600;letter-spacing:.8px;text-transform:uppercase">Tipo de Cambio (MXN/USD)</div>
       <input type="range" id="tcSlider" min="15" max="22" step="0.5" value="18" style="flex:1;min-width:180px;accent-color:var(--yellow)">
       <span id="tcVal" style="font-size:20px;font-weight:800;color:var(--yellow);min-width:55px">$18.0</span>
+      <div style="display:inline-flex;background:rgba(42,45,62,.8);border-radius:8px;padding:3px;gap:2px">
+        <button id="curUSD" onclick="setCurrency('USD')" style="background:var(--yellow);color:#1a1d27;border:none;padding:6px 14px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;transition:.2s">USD</button>
+        <button id="curMXN" onclick="setCurrency('MXN')" style="background:transparent;color:var(--text2);border:none;padding:6px 14px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;transition:.2s">MXN</button>
+      </div>
     </div>
 
     <!-- KPIs -->
@@ -414,7 +418,7 @@
     <!-- Chart: barras mensuales 2026 -->
     <div style="height:280px"><canvas id="metaChart"></canvas></div>
     <div style="font-size:11px;color:var(--text2);text-align:center;margin-top:10px">
-      Barras = ventas mensuales en USD &nbsp;·&nbsp; Línea punteada = ritmo mensual necesario para llegar a $1M USD
+      Barras = ventas mensuales (toggle MXN/USD) &nbsp;·&nbsp; Línea punteada = ritmo mensual necesario para llegar a $1M USD &nbsp;·&nbsp; Tooltip muestra ambas monedas
     </div>
   </div>
 
@@ -953,9 +957,25 @@ function updateCierre2025(tc) {
   document.getElementById('bar2025').style.width = Math.min(100, pct) + '%';
 }
 
+let currentCurrency = 'USD';
+function setCurrency(c) {
+  currentCurrency = c;
+  const usdBtn = document.getElementById('curUSD');
+  const mxnBtn = document.getElementById('curMXN');
+  const active = {background:'var(--yellow)', color:'#1a1d27'};
+  const inactive = {background:'transparent', color:'var(--text2)'};
+  Object.assign(usdBtn.style, c==='USD'?active:inactive);
+  Object.assign(mxnBtn.style, c==='MXN'?active:inactive);
+  updateMeta();
+}
+
 function updateMeta() {
   const tc = parseFloat(document.getElementById('tcSlider').value);
   document.getElementById('tcVal').textContent = '$' + tc.toFixed(1);
+  const inUSD = currentCurrency === 'USD';
+  const conv = v => inUSD ? v / tc : v;
+  const symU = inUSD ? 'USD' : 'MXN';
+  const fmtK = v => '$' + (v >= 1e6 ? (v/1e6).toFixed(1)+'M' : (v/1000).toFixed(0)+'K');
 
   // Actualizar también cierre 2025
   updateCierre2025(tc);
@@ -1030,19 +1050,22 @@ function updateMeta() {
   document.getElementById('metaGoalLabel').textContent = 'Meta: $1,000,000 USD = ' + fmtN(GOAL_MXN) + ' MXN';
 
   // Chart: 12 barras (meses 2026), reales en morado, vacías en gris, línea = ritmo necesario
-  const barData = MESES_2026.map(m => VENTAS_2026[m] !== undefined ? VENTAS_2026[m] / tc : 0);
+  const barData = MESES_2026.map(m => VENTAS_2026[m] !== undefined ? conv(VENTAS_2026[m]) : 0);
   const barColors = MESES_2026.map(m => VENTAS_2026[m] !== undefined ? 'rgba(108,99,255,0.6)' : 'rgba(42,45,62,0.5)');
   const barBorders = MESES_2026.map(m => VENTAS_2026[m] !== undefined ? '#6c63ff' : 'rgba(42,45,62,0.8)');
 
   // Línea acumulada real
   let acum = 0;
   const acumData = MESES_2026.map(m => {
-    if (VENTAS_2026[m] !== undefined) { acum += VENTAS_2026[m] / tc; return acum; }
+    if (VENTAS_2026[m] !== undefined) { acum += conv(VENTAS_2026[m]); return acum; }
     return null;
   });
 
+  // Ritmo necesario y meta en la moneda activa
+  const ritmoNecMon = inUSD ? ritmoNecesarioUSD : ritmoNecesarioUSD * tc;
+  const goalMon = inUSD ? GOAL_USD : GOAL_MXN;
   // Línea de ritmo ideal (dividir meta entre 12 meses, acumulado lineal)
-  const idealData = MESES_2026.map((_, i) => GOAL_USD / 12 * (i + 1));
+  const idealData = MESES_2026.map((_, i) => goalMon / 12 * (i + 1));
 
   if (metaChart) metaChart.destroy();
   metaChart = new Chart(document.getElementById('metaChart'), {
@@ -1051,7 +1074,7 @@ function updateMeta() {
       labels: MESES_2026.map(m => m + '-26'),
       datasets: [
         {
-          label: 'Ventas reales (USD)',
+          label: 'Ventas reales (' + symU + ')',
           data: barData,
           backgroundColor: barColors,
           borderColor: barBorders,
@@ -1061,7 +1084,7 @@ function updateMeta() {
         },
         {
           label: 'Ritmo necesario/mes',
-          data: MESES_2026.map(() => ritmoNecesarioUSD),
+          data: MESES_2026.map(() => ritmoNecMon),
           borderColor: 'rgba(255,217,61,0.5)',
           borderWidth: 1.5,
           borderDash: [6,4],
@@ -1110,7 +1133,10 @@ function updateMeta() {
         tooltip: { ...ttCfg, callbacks: {
           label: c => {
             if (c.raw == null || c.raw === 0) return '';
-            return ` ${c.dataset.label}: $${Math.round(c.raw).toLocaleString('es-MX')} USD`;
+            const valMon = c.raw;
+            const valOther = inUSD ? valMon * tc : valMon / tc;
+            const symOther = inUSD ? 'MXN' : 'USD';
+            return ` ${c.dataset.label}: $${Math.round(valMon).toLocaleString('es-MX')} ${symU}  ·  $${Math.round(valOther).toLocaleString('es-MX')} ${symOther}`;
           }
         }}
       },
@@ -1118,15 +1144,15 @@ function updateMeta() {
         x: { grid: { color: GC } },
         y: {
           grid: { color: GC },
-          ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'K' },
-          title: { display: true, text: 'Ventas mensuales (USD)', color: '#9196b0', font: { size: 10 } }
+          ticks: { callback: v => fmtK(v) },
+          title: { display: true, text: 'Ventas mensuales (' + symU + ')', color: '#9196b0', font: { size: 10 } }
         },
         yAccum: {
           position: 'right',
           grid: { display: false },
-          ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'K', color: '#00d4aa' },
-          title: { display: true, text: 'Acumulado anual (USD)', color: '#00d4aa', font: { size: 10 } },
-          suggestedMax: GOAL_USD * 1.1
+          ticks: { callback: v => fmtK(v), color: '#00d4aa' },
+          title: { display: true, text: 'Acumulado anual (' + symU + ')', color: '#00d4aa', font: { size: 10 } },
+          suggestedMax: goalMon * 1.1
         }
       }
     }
