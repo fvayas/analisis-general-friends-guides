@@ -723,10 +723,17 @@ vd.innerHTML=`<b style="color:${vCol};font-size:14px">${vTit}</b><br>`+
 new Chart(document.getElementById('ratioChart'),{
   type:'line',
   data:{labels:M,datasets:[
-    {data:RATIO_GU,borderColor:'#4d9fff',backgroundColor:'rgba(77,159,255,0.10)',borderWidth:3,pointBackgroundColor:'#4d9fff',pointRadius:5,tension:.4,fill:true}
+    {data:RATIO_GU,borderColor:'#4d9fff',backgroundColor:'rgba(77,159,255,0.10)',borderWidth:3,pointBackgroundColor:'#4d9fff',pointRadius:6,pointHoverRadius:9,tension:.4,fill:true}
   ]},
   options:{responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{display:false},tooltip:{...ttCfg,callbacks:{label:c=>` Gastos s/imp.: ${c.raw.toFixed(1)}% de la utilidad de tours`}}},
+    plugins:{legend:{display:false},tooltip:{...ttCfg,callbacks:{label:c=>{
+      const i=c.dataIndex;
+      const cats=[['Plataformas',G_PLAT[i]],['Marketing',G_MARK[i]],['Viajes/Eventos (Arival/FITUR)',G_VIAJ[i]],['Operativos',G_OPER[i]],['Otros',G_OTRO[i]]].filter(x=>x[1]>0);
+      const tot=cats.reduce((a,b)=>a+b[1],0);
+      const L=[` ${c.raw.toFixed(1)}% de la utilidad de tours`,'',` Gastos de oficina (sin impuestos): $${Math.round(tot).toLocaleString('es-MX')}`];
+      cats.forEach(([n,v])=>L.push(`   • ${n}: $${Math.round(v).toLocaleString('es-MX')}`));
+      return L;
+    }}}},
     scales:{x:{grid:{color:GC}},y:{grid:{color:GC},ticks:{callback:v=>v+'%'},min:0}}
   }
 });
