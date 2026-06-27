@@ -269,6 +269,7 @@
       <div id="ratioVal" style="font-size:42px;font-weight:800;color:var(--green);letter-spacing:-1px">—</div>
       <div class="kpi-sub" id="ratioSub" style="max-width:640px;line-height:1.6"></div>
     </div>
+    <div id="ratioVerdict" style="border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;line-height:1.65;border:1px solid var(--border)"></div>
     <div style="height:240px"><canvas id="ratioChart"></canvas></div>
   </div>
 
@@ -704,6 +705,21 @@ document.getElementById('ratioVal').textContent = ratioGU.toFixed(1)+'%';
 document.getElementById('ratioSub').innerHTML =
   `De cada $100 de utilidad que dejan los tours, <b style="color:var(--text)">$${ratioGU.toFixed(0)} se van en gastos de oficina</b> (sin contar impuestos) y $${(100-ratioGU).toFixed(0)} quedan.<br>`+
   `Gastos sin impuestos: <b>${_mx(totGAsi)}</b> · Utilidad de Tours: <b>${_mx(totUTr)}</b> · <span style="color:var(--text2)">Impuestos aparte: ${_mx(totImp)}</span>`;
+// Veredicto de salud (benchmark de industria: G&A como % de ventas)
+const ventasTot = V.reduce((a,b)=>a+b,0);
+const gVtaSin = totGAsi/ventasTot*100;              // gastos s/imp como % de ventas
+const gVtaCon = (totGAsi+totImp)/ventasTot*100;     // gastos totales como % de ventas
+let vTit, vCol, vBg;
+if(gVtaSin<=5){ vTit='✓ EXCELENTE — operación al nivel de las empresas más eficientes'; vCol='var(--green)'; vBg='rgba(0,212,170,.08)'; }
+else if(gVtaSin<=10){ vTit='✓ MUY SANO'; vCol='var(--green)'; vBg='rgba(0,212,170,.08)'; }
+else if(gVtaSin<=20){ vTit='✓ SANO'; vCol='var(--green)'; vBg='rgba(0,212,170,.08)'; }
+else if(gVtaSin<=30){ vTit='⚠ ACEPTABLE — conviene vigilar'; vCol='var(--yellow)'; vBg='rgba(255,217,61,.08)'; }
+else { vTit='⚠ ALTO — revisar costos'; vCol='var(--red)'; vBg='rgba(255,107,107,.08)'; }
+const vd=document.getElementById('ratioVerdict');
+vd.style.borderColor=vCol; vd.style.background=vBg;
+vd.innerHTML=`<b style="color:${vCol};font-size:14px">${vTit}</b><br>`+
+  `Medido como se mide la salud de gastos en los negocios (gastos de oficina ÷ ventas), los tuyos son apenas <b>${gVtaSin.toFixed(0)}% de las ventas</b> sin impuestos (<b>${gVtaCon.toFixed(0)}%</b> con todo incluido).<br>`+
+  `<span style="color:var(--text2)">Referencia de la industria: las empresas <b>más eficientes andan en 3–5%</b>, el <b>promedio general ronda 20%</b>, y negocios de servicios 15–25%. Estás en el rango de las mejores. (Fuente: benchmarks G&A — McKinsey, Umbrex, MetricHQ.)</span>`;
 new Chart(document.getElementById('ratioChart'),{
   type:'line',
   data:{labels:M,datasets:[
