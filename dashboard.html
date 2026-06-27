@@ -122,13 +122,13 @@
   <div class="kpi-grid">
     <div class="kpi c1">
       <div class="kpi-label">Ventas Totales</div>
-      <div class="kpi-val" style="color:var(--accent)">$13.6M</div>
-      <div class="kpi-sub">$13,578,145 MXN — suma de tours + venta adicional</div>
+      <div class="kpi-val" id="kpiVentas" style="color:var(--accent)">—</div>
+      <div class="kpi-sub" id="kpiVentasSub"></div>
     </div>
     <div class="kpi c2">
       <div class="kpi-label">Clientes Atendidos</div>
-      <div class="kpi-val" style="color:var(--green)">10,593</div>
-      <div class="kpi-sub">PAX totales en 13 meses de operación</div>
+      <div class="kpi-val" id="kpiPax" style="color:var(--green)">—</div>
+      <div class="kpi-sub" id="kpiPaxSub"></div>
     </div>
     <div class="kpi c3">
       <div class="tip">
@@ -144,13 +144,13 @@
           Los gastos en dólares ya están convertidos a pesos dentro de cada hoja mensual.
         </div>
       </div>
-      <div class="kpi-val" style="color:var(--yellow)">$6.5M</div>
-      <div class="kpi-sub">$6,533,658 MXN utilidad neta total</div>
+      <div class="kpi-val" id="kpiUN" style="color:var(--yellow)">—</div>
+      <div class="kpi-sub" id="kpiUNSub"></div>
     </div>
     <div class="kpi c4">
       <div class="kpi-label">Mejor Mes (Util. Neta)</div>
-      <div class="kpi-val" style="color:var(--purple)">Dic-25</div>
-      <div class="kpi-sub">$749,150 MXN utilidad neta</div>
+      <div class="kpi-val" id="kpiBest" style="color:var(--purple)">—</div>
+      <div class="kpi-sub" id="kpiBestSub"></div>
     </div>
   </div>
 
@@ -472,6 +472,23 @@ const TK_REG  = PO.map((p,i)=>p>0?VO[i]/p:null); // Ticket tours regulares (sin 
 const TK_BOL  = PB.map((p,i)=>p>0?VB[i]/p:null); // Ticket Boletos-Frida
 const TK = PO.map((p,i)=>p>0?VO[i]/p:null); // Usado en tabla (tours regulares)
 const MG = UN.map((u,i)=>V[i]>0?(u/V[i]*100):0);
+
+// ── KPIs DE ENCABEZADO (dinámicos: se actualizan solos al agregar meses) ──
+(function(){
+  const sum=a=>a.reduce((x,y)=>x+y,0);
+  const mx=n=>'$'+Math.round(n).toLocaleString('es-MX');
+  const mm=n=>'$'+(n/1e6).toFixed(1)+'M';
+  const tv=sum(V), tp=sum(P), tu=sum(UN);
+  document.getElementById('kpiVentas').textContent=mm(tv);
+  document.getElementById('kpiVentasSub').textContent=mx(tv)+' MXN — suma de tours + venta adicional';
+  document.getElementById('kpiPax').textContent=tp.toLocaleString('es-MX');
+  document.getElementById('kpiPaxSub').textContent='PAX totales en '+M.length+' meses de operación';
+  document.getElementById('kpiUN').textContent=mm(tu);
+  document.getElementById('kpiUNSub').textContent=mx(tu)+' MXN utilidad neta total';
+  let bi=0; for(let i=1;i<UN.length;i++) if(UN[i]>UN[bi]) bi=i;
+  document.getElementById('kpiBest').textContent=M[bi];
+  document.getElementById('kpiBestSub').textContent=mx(UN[bi])+' MXN utilidad neta';
+})();
 
 // ── TOOLTIP POSITIONING (fixed, avoids overflow clipping) ──
 document.querySelectorAll('.tip').forEach(tip => {
