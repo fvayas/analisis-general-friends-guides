@@ -272,6 +272,30 @@
     <div style="height:240px"><canvas id="ratioChart"></canvas></div>
   </div>
 
+  <!-- ═══ RENTABILIDAD DE BOLETOS ═══ -->
+  <div class="crd" style="margin-bottom:24px">
+    <div class="crd-hd"><div>
+      <div class="tip">
+        <div class="crd-title">Rentabilidad de Boletos por Mes (venta − costo)</div>
+        <div class="tip-icon">?</div>
+        <div class="tip-box">
+          <b>¿Qué mide?</b><br><br>
+          Cuánto deja el producto <b>Boletos-Frida</b> en dinero cada mes, directo de su cuadro:<br><br>
+          = Precio de venta de los boletos − Costo de los boletos<br><br>
+          Y cuánto representa eso de la <b>utilidad neta del mes</b>.<br>
+          <span style="color:var(--green)">Verde</span> = aporta · <span style="color:var(--red)">Rojo</span> = resta.<br>
+          Producto nuevo: arrancó con su cuadro propio en feb-2026.
+        </div>
+      </div>
+      <div class="crd-desc">Venta − Costo de Boletos, en dinero cada mes · y cuánto pesa en la utilidad neta del mes</div>
+    </div></div>
+    <div style="margin:6px 0 14px">
+      <div id="bolVal" style="font-size:38px;font-weight:800;letter-spacing:-1px">—</div>
+      <div class="kpi-sub" id="bolSub" style="max-width:660px;line-height:1.6"></div>
+    </div>
+    <div style="height:240px"><canvas id="bolChart"></canvas></div>
+  </div>
+
   <!-- ═══ PAX POR TOUR POR MES ═══ -->
   <div class="sec-title" style="margin-top:8px">PAX por Tour por Mes</div>
   <div class="crd" style="margin-bottom:24px">
@@ -714,6 +738,38 @@ new Chart(document.getElementById('ratioChart'),{
     scales:{x:{grid:{color:GC}},y:{grid:{color:GC},ticks:{callback:v=>v+'%'},min:0}}
   }
 });
+
+// ── RENTABILIDAD DE BOLETOS (venta − costo, del cuadro de Boletos) ──
+const BOL_VENTA = [null,null,null,null,null,null,null,null,null,null,null,null,null,85970,213840,343302];
+const BOL_COSTO = [null,null,null,null,null,null,null,null,null,null,null,null,null,97776,285936,315504];
+const BOL_UTIL  = BOL_VENTA.map((v,i)=> v===null ? null : v-BOL_COSTO[i]);
+const BOL_PCT   = BOL_UTIL.map((u,i)=> u===null ? null : (UN[i]>0 ? u/UN[i]*100 : 0));
+(function(){
+  let li=-1; for(let i=0;i<BOL_UTIL.length;i++) if(BOL_UTIL[i]!==null) li=i;
+  const _s=n=>(n>=0?'+$':'-$')+Math.abs(Math.round(n)).toLocaleString('es-MX');
+  const u=BOL_UTIL[li], pct=BOL_PCT[li], acc=BOL_UTIL.reduce((a,b)=>a+(b||0),0);
+  const el=document.getElementById('bolVal');
+  el.textContent=_s(u)+'  ('+M[li]+')';
+  el.style.color = u>=0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('bolSub').innerHTML=
+    `Último mes (${M[li]}): Boletos dejó <b style="color:${u>=0?'var(--green)':'var(--red)'}">${_s(u)}</b> de utilidad = <b>${pct.toFixed(0)}%</b> de la utilidad neta del mes.<br>`+
+    `Acumulado desde que arrancó (feb-26): <b>${_s(acc)}</b>. <span style="color:var(--text2)">Verde aporta · Rojo resta.</span>`;
+  new Chart(document.getElementById('bolChart'),{
+    type:'bar',
+    data:{labels:M,datasets:[
+      {label:'Utilidad Boletos',data:BOL_UTIL,
+       backgroundColor:BOL_UTIL.map(v=>v===null?'transparent':v>=0?'rgba(0,212,170,0.6)':'rgba(255,107,107,0.6)'),
+       borderColor:BOL_UTIL.map(v=>v===null?'transparent':v>=0?'#00d4aa':'#ff6b6b'),borderWidth:2,borderRadius:5}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...ttCfg,callbacks:{label:c=>{
+        const i=c.dataIndex; if(BOL_UTIL[i]===null) return '';
+        return [' Venta: $'+BOL_VENTA[i].toLocaleString('es-MX'),' Costo: $'+BOL_COSTO[i].toLocaleString('es-MX'),' Utilidad: '+_s(BOL_UTIL[i]),' = '+BOL_PCT[i].toFixed(0)+'% de la util. neta'];
+      }}}},
+      scales:{x:{grid:{color:GC}},y:{grid:{color:GC},ticks:{callback:v=>'$'+(v/1000)+'K'}}}
+    }
+  });
+})();
 
 // ── PAX POR TOUR POR MES ──
 const PAX_TOURS = [
