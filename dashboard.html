@@ -249,6 +249,29 @@
     <div style="height:240px"><canvas id="margenChart"></canvas></div>
   </div>
 
+  <!-- ═══ PESO DE GASTOS SOBRE UTILIDAD (sin impuestos) ═══ -->
+  <div class="crd" style="margin-bottom:24px">
+    <div class="crd-hd"><div>
+      <div class="tip">
+        <div class="crd-title">Peso de los Gastos sobre la Utilidad (sin impuestos)</div>
+        <div class="tip-icon">?</div>
+        <div class="tip-box">
+          <b>¿Qué mide?</b><br><br>
+          Qué porcentaje de la <b>Utilidad de Tours</b> (la ganancia que dejan los tours) se va en <b>Gastos Admin SIN impuestos</b>.<br><br>
+          = (Gastos Admin − Impuestos) ÷ Utilidad de Tours × 100<br><br>
+          Los <b>impuestos se excluyen a propósito</b>: no son un gasto operativo controlable.<br>
+          Mientras más bajo, más eficiente la operación.
+        </div>
+      </div>
+      <div class="crd-desc">(Gastos Admin − Impuestos) ÷ Utilidad de Tours × 100 · Qué % de la ganancia de los tours se va en gastos de oficina, <b>sin contar impuestos</b></div>
+    </div></div>
+    <div style="margin:6px 0 18px">
+      <div id="ratioVal" style="font-size:42px;font-weight:800;color:var(--green);letter-spacing:-1px">—</div>
+      <div class="kpi-sub" id="ratioSub" style="max-width:640px;line-height:1.6"></div>
+    </div>
+    <div style="height:240px"><canvas id="ratioChart"></canvas></div>
+  </div>
+
   <!-- ═══ PAX POR TOUR POR MES ═══ -->
   <div class="sec-title" style="margin-top:8px">PAX por Tour por Mes</div>
   <div class="crd" style="margin-bottom:24px">
@@ -649,6 +672,29 @@ new Chart(document.getElementById('margenChart'),{
       x:{grid:{color:GC}},
       y:{grid:{color:GC},ticks:{callback:v=>v+'%'},min:0,max:80}
     }
+  }
+});
+
+// ── PESO DE GASTOS (sin impuestos) SOBRE UTILIDAD DE TOURS ──
+const GA_SIN_IMP = GA.map((g,i)=> g - (G_IMPU[i]||0));
+const RATIO_GU   = GA_SIN_IMP.map((g,i)=> UT[i]>0 ? g/UT[i]*100 : 0);
+const totGAsi = GA_SIN_IMP.reduce((a,b)=>a+b,0);
+const totUTr  = UT.reduce((a,b)=>a+b,0);
+const totImp  = G_IMPU.reduce((a,b)=>a+b,0);
+const ratioGU = totUTr>0 ? totGAsi/totUTr*100 : 0;
+const _mx = n => '$'+Math.round(n).toLocaleString('es-MX');
+document.getElementById('ratioVal').textContent = ratioGU.toFixed(1)+'%';
+document.getElementById('ratioSub').innerHTML =
+  `De cada $100 de utilidad que dejan los tours, <b style="color:var(--text)">$${ratioGU.toFixed(0)} se van en gastos de oficina</b> (sin contar impuestos) y $${(100-ratioGU).toFixed(0)} quedan.<br>`+
+  `Gastos sin impuestos: <b>${_mx(totGAsi)}</b> · Utilidad de Tours: <b>${_mx(totUTr)}</b> · <span style="color:var(--text2)">Impuestos aparte: ${_mx(totImp)}</span>`;
+new Chart(document.getElementById('ratioChart'),{
+  type:'line',
+  data:{labels:M,datasets:[
+    {data:RATIO_GU,borderColor:'#4d9fff',backgroundColor:'rgba(77,159,255,0.10)',borderWidth:3,pointBackgroundColor:'#4d9fff',pointRadius:5,tension:.4,fill:true}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...ttCfg,callbacks:{label:c=>` Gastos s/imp.: ${c.raw.toFixed(1)}% de la utilidad de tours`}}},
+    scales:{x:{grid:{color:GC}},y:{grid:{color:GC},ticks:{callback:v=>v+'%'},min:0}}
   }
 });
 
