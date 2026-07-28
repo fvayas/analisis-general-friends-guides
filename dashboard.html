@@ -732,7 +732,8 @@ new Chart(document.getElementById('ratioChart'),{
   options:{responsive:true,maintainAspectRatio:false,
     plugins:{legend:{display:false},tooltip:{...ttCfg,callbacks:{label:c=>{
       const i=c.dataIndex;
-      const cats=[['Plataformas',G_PLAT[i]],['Marketing',G_MARK[i]],['Viajes/Eventos (Arival/FITUR)',G_VIAJ[i]],['Operativos',G_OPER[i]],['Otros',G_OTRO[i]]].filter(x=>x[1]>0);
+      const VIAJES_LBL={'Oct-25':'Viajes/Eventos (Arival Valencia)','Nov-25':'Viajes/Eventos (FITUR)','Dic-25':'Viajes/Eventos (FITUR Madrid)','Feb-26':'Viajes/Eventos (vuelos)','Mar-26':'Viajes/Eventos (Arival Valencia)','Abr-26':'Viajes/Eventos (vuelos México)','May-26':'Viajes/Eventos (Reunión anual)'};
+      const cats=[['Plataformas',G_PLAT[i]],['Marketing',G_MARK[i]],[VIAJES_LBL[M[i]]||'Viajes/Eventos',G_VIAJ[i]],['Operativos',G_OPER[i]],['Otros',G_OTRO[i]]].filter(x=>x[1]>0);
       const tot=cats.reduce((a,b)=>a+b[1],0);
       const L=[` ${c.raw.toFixed(1)}% de la utilidad de tours`,'',` Gastos de oficina (sin impuestos): $${Math.round(tot).toLocaleString('es-MX')}`];
       cats.forEach(([n,v])=>L.push(`   • ${n}: $${Math.round(v).toLocaleString('es-MX')}`));
